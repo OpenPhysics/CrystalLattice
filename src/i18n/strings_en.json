@@ -1,0 +1,238 @@
+{
+  "title": "Crystal Lattice",
+  "screens": {
+    "lattices2D": "2D Lattices",
+    "cubicSystems": "Cubic Systems",
+    "closePacking": "Close-Packing",
+    "millerIndices": "Miller Indices",
+    "aperiodicOrder": "Aperiodic Order"
+  },
+  "common": {
+    "quantities": "Quantities",
+    "overlays": "Show",
+    "structure": "Structure",
+    "reset": "Reset",
+    "coordinationNumber": "Coordination number",
+    "atomsPerCell": "Atoms per cell",
+    "packingFraction": "Packing fraction",
+    "none": "none"
+  },
+  "lattices2D": {
+    "vectorA1": "|a₁|",
+    "vectorA2": "|a₂|",
+    "gamma": "γ",
+    "centeredBasis": "Second atom at cell centre",
+    "primitiveCell": "Primitive cell",
+    "wignerSeitzCell": "Wigner–Seitz cell",
+    "bisectors": "Bisector construction",
+    "coordinationShell": "Nearest-neighbour shell",
+    "snapTo": "Snap to",
+    "latticeType": "Lattice type",
+    "cellArea": "Cell area",
+    "arealDensity": "Areal density",
+    "nearestNeighbour": "Nearest neighbour",
+    "types": {
+      "square": "Square",
+      "rectangular": "Rectangular",
+      "centeredRectangular": "Centred rectangular",
+      "hexagonal": "Hexagonal",
+      "oblique": "Oblique"
+    }
+  },
+  "cubicSystems": {
+    "cellEdge": "Cell edge a",
+    "atomicRadius": "Atomic radius r",
+    "snapToTouching": "Snap r to touching",
+    "clipPlane": "Cut away front",
+    "showSharing": "Show shared fractions",
+    "structures": {
+      "simpleCubic": "Simple cubic",
+      "bodyCentered": "Body-centred cubic",
+      "faceCentered": "Face-centred cubic"
+    },
+    "touchingRelation": "Touching condition",
+    "touchingRadius": "Touching radius",
+    "packingFactor": "Packing factor APF",
+    "identifyElement": "Identify the element",
+    "element": "Element",
+    "computedDensity": "Computed density",
+    "measuredDensity": "Measured density",
+    "overlapWarning": "Spheres overlap — no longer a hard-sphere model",
+    "noMatch": "No tabulated match"
+  },
+  "closePacking": {
+    "layerCount": "Layers",
+    "cOverA": "Axial ratio c/a",
+    "sequence": "Stacking sequence",
+    "sequenceInput": "Type a sequence",
+    "idealRatio": "Ideal c/a",
+    "stackingType": "Stacking",
+    "interlayerSpacing": "Interlayer spacing",
+    "realCrystals": "Real HCP metals",
+    "showLabels": "Label layers A, B, C",
+    "types": {
+      "hcp": "HCP (ABAB…)",
+      "fcc": "FCC (ABCABC…)",
+      "mixed": "Stacking fault",
+      "invalid": "Not close-packed",
+      "custom": "Custom"
+    }
+  },
+  "millerIndices": {
+    "planeMode": "Plane (hkl)",
+    "directionMode": "Direction [uvw]",
+    "interceptA": "Intercept on a",
+    "interceptB": "Intercept on b",
+    "interceptC": "Intercept on c",
+    "parallel": "∥ (at infinity)",
+    "derivation": "How the indices are found",
+    "stepIntercepts": "1. Intercepts",
+    "stepReciprocals": "2. Reciprocals",
+    "stepCleared": "3. Cleared to integers",
+    "stepReduced": "4. Reduced",
+    "interplanarSpacing": "Interplanar spacing d",
+    "planarDensity": "Planar density",
+    "family": "Equivalent family",
+    "familySize": "Members",
+    "showNormal": "Show normal direction [hkl]",
+    "showFamily": "Show equivalent family",
+    "presets": "Worked examples",
+    "enterIndices": "Enter indices",
+    "invalidIndices": "Enter three indices, e.g. (1-10)",
+    "twoHundredNote": "(200) is parallel to (100) but has half the spacing — the common factor is not divided out for planes."
+  },
+  "aperiodicOrder": {
+    "intro": "Screens 1–4 all assumed one small chunk repeated by translation. Can order exist without that repeating chunk?",
+    "penroseMode": "Penrose tiles",
+    "einsteinMode": "Einstein tile",
+    "periodicMode": "Periodic lattice",
+    "inflate": "Inflate",
+    "deflate": "Step back",
+    "autoTile": "Auto-tile",
+    "inflationLevel": "Inflation steps",
+    "substitutionLevel": "Substitution steps",
+    "highlightOrientations": "Highlight the five edge directions",
+    "showMetatiles": "Colour by metatile cluster",
+    "showReflected": "Mark reflected hats",
+    "showSpectre": "Show the spectre tile",
+    "tileCounts": "Tile counts",
+    "thickTiles": "Thick rhombi",
+    "thinTiles": "Thin rhombi",
+    "tileRatio": "Thick : thin",
+    "goldenRatio": "Golden ratio φ",
+    "hatCount": "Hats",
+    "reflectedCount": "Reflected hats",
+    "diffraction": "Diffraction pattern",
+    "realSpace": "Real space",
+    "symmetryOrder": "Symmetry order",
+    "peakCount": "Bragg peaks",
+    "pointCount": "Scatterers",
+    "compareLattice": "Compare with a periodic lattice",
+    "forbiddenNote": "Sharp peaks mean long-range order. Ten-fold symmetry is forbidden for any periodic lattice — only 1-, 2-, 3-, 4- and 6-fold axes are compatible with translational periodicity.",
+    "shechtmanNote": "This is what Shechtman measured in rapidly cooled Al–Mn in 1982, and what the 2011 Nobel Prize in Chemistry was awarded for.",
+    "hatSpectreNote": "The hat tiles the plane only if reflected copies are allowed. The spectre, found months later, needs only rotations of one chiral tile.",
+    "tooManyPoints": "Too many points for a live transform — step back to see the pattern."
+  },
+  "a11y": {
+    "lattices2D": {
+      "screenSummary": {
+        "playArea": "The play area shows a two-dimensional lattice of atoms built from two primitive vectors that start at a highlighted origin atom. Draggable handles at the tips of the two vectors set their lengths and the angle between them.",
+        "controlArea": "The control area has sliders for the two vector lengths and the angle between them, check boxes for the primitive cell, Wigner-Seitz cell, bisector construction and nearest-neighbour shell overlays, a control that snaps the lattice to a chosen Bravais type, and a Reset All button.",
+        "interactionHint": "Drag the vector handles or use the sliders to change the lattice, and watch the lattice type readout to find each of the five two-dimensional Bravais lattices."
+      },
+      "currentDetails": "The lattice is currently {{type}}, with the first vector {{a1}} nanometres long, the second {{a2}} nanometres long, and {{gamma}} degrees between them. Each atom has {{coordination}} nearest neighbours.",
+      "controls": {
+        "vectorA1Slider": "Length of the first primitive vector",
+        "vectorA2Slider": "Length of the second primitive vector",
+        "gammaSlider": "Angle between the two primitive vectors",
+        "centeredBasis": "Place a second atom at the centre of each cell",
+        "primitiveCell": "Shade the primitive unit cell",
+        "wignerSeitzCell": "Show the Wigner-Seitz cell",
+        "bisectors": "Show the perpendicular bisectors used to construct the Wigner-Seitz cell",
+        "coordinationShell": "Show a circle through the nearest neighbours",
+        "snapTo": "Snap the lattice to a chosen Bravais type",
+        "handleA1": "Tip of the first primitive vector; drag to change its length",
+        "handleA2": "Tip of the second primitive vector; drag to change its length and the angle"
+      }
+    },
+    "cubicSystems": {
+      "screenSummary": {
+        "playArea": "The play area shows a cubic unit cell drawn in three dimensions, filled with hard-sphere atoms. Drag the cell to rotate it.",
+        "controlArea": "The control area has a structure selector for simple cubic, body-centred cubic and face-centred cubic, sliders for the cell edge and the atomic radius, a button that sets the radius to its touching value, overlay check boxes, and a Reset All button.",
+        "interactionHint": "Choose a structure, then drag the atomic radius slider until the spheres just touch, and watch the packing factor climb to its maximum."
+      },
+      "currentDetails": "The structure is {{structure}}, with a cell edge of {{edge}} nanometres and an atomic radius of {{radius}} nanometres. There are {{atoms}} atoms per cell, each with {{coordination}} nearest neighbours, and the packing factor is {{apf}}.",
+      "controls": {
+        "structureSelector": "Choose the cubic structure",
+        "cellEdgeSlider": "Length of the cubic cell edge",
+        "atomicRadiusSlider": "Atomic radius of the hard spheres",
+        "snapToTouching": "Set the atomic radius to the value at which spheres just touch",
+        "clipPlane": "Cut away the front of the cell to reveal the interior atoms",
+        "showSharing": "Show what fraction of each atom belongs to this cell",
+        "cellRotation": "Cubic unit cell; drag to rotate it",
+        "elementSelector": "Choose a real cubic metal to compare against"
+      }
+    },
+    "closePacking": {
+      "screenSummary": {
+        "playArea": "The play area shows close-packed layers of spheres stacked on top of one another, drawn in three dimensions. Drag the stack to rotate it.",
+        "controlArea": "The control area has a stacking sequence selector for hexagonal and cubic close packing, a slider for the number of layers, a slider for the axial ratio, a field for typing a custom sequence, and a Reset All button.",
+        "interactionHint": "Switch between the A-B-A-B and A-B-C-A-B-C sequences and notice that the packing fraction does not change, even though the structures look completely different."
+      },
+      "currentDetails": "The stack is {{sequence}}, which is {{type}}. It has {{layers}} layers at an axial ratio of {{ratio}}, giving a coordination number of {{coordination}} and a packing fraction of {{packing}}.",
+      "controls": {
+        "stackingSelector": "Choose the stacking sequence",
+        "layerCountSlider": "Number of close-packed layers",
+        "cOverASlider": "Axial ratio c over a",
+        "sequenceInput": "Type a stacking sequence using the letters A, B and C",
+        "stackRotation": "Stack of close-packed layers; drag to rotate it",
+        "showLabels": "Label each layer with its position A, B or C"
+      }
+    },
+    "millerIndices": {
+      "screenSummary": {
+        "playArea": "The play area shows a cubic unit cell containing either a crystallographic plane with draggable intercept handles on the three axes, or a draggable direction vector from the cell origin. Drag the cell to rotate it.",
+        "controlArea": "The control area switches between plane and direction mode, shows the step-by-step derivation of the indices, offers preset worked examples, and has a field for entering indices directly plus a Reset All button.",
+        "interactionHint": "Drag an intercept handle and watch the derivation panel turn intercepts into reciprocals and then into whole-number indices."
+      },
+      "currentDetails": "The current plane is {{plane}} with an interplanar spacing of {{spacing}} nanometres. Its equivalent family has {{family}} members.",
+      "currentDetailsDirection": "The current direction is {{direction}}. Its equivalent family has {{family}} members.",
+      "controls": {
+        "modeSelector": "Switch between plane and direction mode",
+        "interceptA": "Where the plane crosses the a axis",
+        "interceptB": "Where the plane crosses the b axis",
+        "interceptC": "Where the plane crosses the c axis",
+        "indexInput": "Type a set of three indices",
+        "showNormal": "Show the direction perpendicular to the current plane",
+        "showFamily": "Show every plane equivalent to this one under cubic symmetry",
+        "presetButton": "Load a worked example",
+        "cellRotation": "Cubic unit cell; drag to rotate it",
+        "directionHandle": "Tip of the direction vector; drag to change it"
+      }
+    },
+    "aperiodicOrder": {
+      "screenSummary": {
+        "playArea": "The play area shows an aperiodic tiling on the left and its computed diffraction pattern on the right. The tiling is built either from the two Penrose rhombi or from copies of the single hat tile.",
+        "controlArea": "The control area switches between the Penrose tiles, the einstein tile and a periodic lattice for comparison, grows the tiling by one substitution step at a time, toggles overlays, and has a Reset All button.",
+        "interactionHint": "Grow the tiling a few steps and compare its diffraction pattern with the periodic lattice's: both have sharp peaks, but only the tiling's have ten-fold symmetry."
+      },
+      "currentDetails": "The tiling has {{tiles}} tiles after {{steps}} substitution steps. Its diffraction pattern has {{peaks}} Bragg peaks with {{symmetry}}-fold rotational symmetry.",
+      "controls": {
+        "modeSelector": "Choose between the Penrose tiles, the einstein tile and a periodic lattice",
+        "inflate": "Subdivide every tile, growing the tiling by one substitution step",
+        "deflate": "Step back to the previous, coarser tiling",
+        "autoTile": "Grow a correct patch of hat tiles automatically",
+        "highlightOrientations": "Highlight the five directions the tile edges take",
+        "showMetatiles": "Colour each hat by the metatile cluster it belongs to",
+        "showReflected": "Mark the reflected copies of the hat",
+        "compareLattice": "Show a periodic lattice's diffraction pattern alongside",
+        "diffractionView": "Computed diffraction pattern of the current tiling"
+      }
+    }
+  },
+  "preferences": {
+    "title": "Simulation",
+    "showAdvancedReadouts": "Show advanced readouts",
+    "showAdvancedReadoutsDescription": "Adds planar density, areal density and diffraction peak counts to the quantity panels."
+  }
+}

@@ -1,0 +1,238 @@
+{
+  "title": "Red Cristalina",
+  "screens": {
+    "lattices2D": "Redes 2D",
+    "cubicSystems": "Sistemas cúbicos",
+    "closePacking": "Empaquetamiento compacto",
+    "millerIndices": "Índices de Miller",
+    "aperiodicOrder": "Orden aperiódico"
+  },
+  "common": {
+    "quantities": "Magnitudes",
+    "overlays": "Mostrar",
+    "structure": "Estructura",
+    "reset": "Reiniciar",
+    "coordinationNumber": "Número de coordinación",
+    "atomsPerCell": "Átomos por celda",
+    "packingFraction": "Fracción de empaquetamiento",
+    "none": "ninguno"
+  },
+  "lattices2D": {
+    "vectorA1": "|a₁|",
+    "vectorA2": "|a₂|",
+    "gamma": "γ",
+    "centeredBasis": "Segundo átomo en el centro de la celda",
+    "primitiveCell": "Celda primitiva",
+    "wignerSeitzCell": "Celda de Wigner–Seitz",
+    "bisectors": "Construcción con mediatrices",
+    "coordinationShell": "Capa de vecinos más próximos",
+    "snapTo": "Ajustar a",
+    "latticeType": "Tipo de red",
+    "cellArea": "Área de la celda",
+    "arealDensity": "Densidad superficial",
+    "nearestNeighbour": "Vecino más próximo",
+    "types": {
+      "square": "Cuadrada",
+      "rectangular": "Rectangular",
+      "centeredRectangular": "Rectangular centrada",
+      "hexagonal": "Hexagonal",
+      "oblique": "Oblicua"
+    }
+  },
+  "cubicSystems": {
+    "cellEdge": "Arista de la celda a",
+    "atomicRadius": "Radio atómico r",
+    "snapToTouching": "Ajustar r al contacto",
+    "clipPlane": "Recortar la parte frontal",
+    "showSharing": "Mostrar fracciones compartidas",
+    "structures": {
+      "simpleCubic": "Cúbica simple",
+      "bodyCentered": "Cúbica centrada en el cuerpo",
+      "faceCentered": "Cúbica centrada en las caras"
+    },
+    "touchingRelation": "Condición de contacto",
+    "touchingRadius": "Radio de contacto",
+    "packingFactor": "Factor de empaquetamiento APF",
+    "identifyElement": "Identificar el elemento",
+    "element": "Elemento",
+    "computedDensity": "Densidad calculada",
+    "measuredDensity": "Densidad medida",
+    "overlapWarning": "Las esferas se solapan: ya no es un modelo de esferas rígidas",
+    "noMatch": "Sin coincidencia en la tabla"
+  },
+  "closePacking": {
+    "layerCount": "Capas",
+    "cOverA": "Relación axial c/a",
+    "sequence": "Secuencia de apilamiento",
+    "sequenceInput": "Escribe una secuencia",
+    "idealRatio": "c/a ideal",
+    "stackingType": "Apilamiento",
+    "interlayerSpacing": "Separación entre capas",
+    "realCrystals": "Metales HCP reales",
+    "showLabels": "Etiquetar las capas A, B, C",
+    "types": {
+      "hcp": "HCP (ABAB…)",
+      "fcc": "FCC (ABCABC…)",
+      "mixed": "Falla de apilamiento",
+      "invalid": "No compacto",
+      "custom": "Personalizada"
+    }
+  },
+  "millerIndices": {
+    "planeMode": "Plano (hkl)",
+    "directionMode": "Dirección [uvw]",
+    "interceptA": "Intersección con a",
+    "interceptB": "Intersección con b",
+    "interceptC": "Intersección con c",
+    "parallel": "∥ (en el infinito)",
+    "derivation": "Cómo se obtienen los índices",
+    "stepIntercepts": "1. Intersecciones",
+    "stepReciprocals": "2. Recíprocos",
+    "stepCleared": "3. Convertidos a enteros",
+    "stepReduced": "4. Reducidos",
+    "interplanarSpacing": "Distancia interplanar d",
+    "planarDensity": "Densidad planar",
+    "family": "Familia equivalente",
+    "familySize": "Miembros",
+    "showNormal": "Mostrar la dirección normal [hkl]",
+    "showFamily": "Mostrar la familia equivalente",
+    "presets": "Ejemplos resueltos",
+    "enterIndices": "Introducir índices",
+    "invalidIndices": "Introduce tres índices, por ejemplo (1-10)",
+    "twoHundredNote": "(200) es paralelo a (100) pero tiene la mitad de separación: en los planos no se divide por el factor común."
+  },
+  "aperiodicOrder": {
+    "intro": "Las pantallas 1 a 4 suponían un pequeño bloque repetido por traslación. ¿Puede haber orden sin ese bloque repetido?",
+    "penroseMode": "Teselas de Penrose",
+    "einsteinMode": "Tesela einstein",
+    "periodicMode": "Red periódica",
+    "inflate": "Inflar",
+    "deflate": "Retroceder",
+    "autoTile": "Teselar automáticamente",
+    "inflationLevel": "Pasos de inflación",
+    "substitutionLevel": "Pasos de sustitución",
+    "highlightOrientations": "Resaltar las cinco direcciones de arista",
+    "showMetatiles": "Colorear por metatesela",
+    "showReflected": "Marcar las teselas reflejadas",
+    "showSpectre": "Mostrar la tesela espectro",
+    "tileCounts": "Recuento de teselas",
+    "thickTiles": "Rombos gruesos",
+    "thinTiles": "Rombos finos",
+    "tileRatio": "Grueso : fino",
+    "goldenRatio": "Razón áurea φ",
+    "hatCount": "Sombreros",
+    "reflectedCount": "Sombreros reflejados",
+    "diffraction": "Patrón de difracción",
+    "realSpace": "Espacio real",
+    "symmetryOrder": "Orden de simetría",
+    "peakCount": "Picos de Bragg",
+    "pointCount": "Dispersores",
+    "compareLattice": "Comparar con una red periódica",
+    "forbiddenNote": "Los picos nítidos indican orden de largo alcance. La simetría decagonal está prohibida en toda red periódica: solo los ejes de orden 1, 2, 3, 4 y 6 son compatibles con la periodicidad traslacional.",
+    "shechtmanNote": "Esto es lo que Shechtman midió en Al–Mn enfriado rápidamente en 1982, y por lo que se concedió el Premio Nobel de Química de 2011.",
+    "hatSpectreNote": "El sombrero solo tesela el plano si se permiten copias reflejadas. El espectro, hallado meses después, solo necesita rotaciones de una tesela quiral.",
+    "tooManyPoints": "Demasiados puntos para una transformada en vivo: retrocede para ver el patrón."
+  },
+  "a11y": {
+    "lattices2D": {
+      "screenSummary": {
+        "playArea": "El área de juego muestra una red bidimensional de átomos construida a partir de dos vectores primitivos que parten de un átomo de origen resaltado. Los tiradores en las puntas de los dos vectores fijan sus longitudes y el ángulo entre ellos.",
+        "controlArea": "El área de control tiene deslizadores para las dos longitudes de vector y el ángulo entre ellos, casillas para las superposiciones de celda primitiva, celda de Wigner-Seitz, construcción con mediatrices y capa de vecinos más próximos, un control que ajusta la red a un tipo de Bravais elegido, y un botón de Reiniciar todo.",
+        "interactionHint": "Arrastra los tiradores de los vectores o usa los deslizadores para cambiar la red, y observa el indicador del tipo de red para encontrar cada una de las cinco redes de Bravais bidimensionales."
+      },
+      "currentDetails": "La red es actualmente {{type}}, con el primer vector de {{a1}} nanómetros, el segundo de {{a2}} nanómetros y {{gamma}} grados entre ellos. Cada átomo tiene {{coordination}} vecinos más próximos.",
+      "controls": {
+        "vectorA1Slider": "Longitud del primer vector primitivo",
+        "vectorA2Slider": "Longitud del segundo vector primitivo",
+        "gammaSlider": "Ángulo entre los dos vectores primitivos",
+        "centeredBasis": "Colocar un segundo átomo en el centro de cada celda",
+        "primitiveCell": "Sombrear la celda unidad primitiva",
+        "wignerSeitzCell": "Mostrar la celda de Wigner-Seitz",
+        "bisectors": "Mostrar las mediatrices usadas para construir la celda de Wigner-Seitz",
+        "coordinationShell": "Mostrar una circunferencia que pasa por los vecinos más próximos",
+        "snapTo": "Ajustar la red a un tipo de Bravais elegido",
+        "handleA1": "Punta del primer vector primitivo; arrastra para cambiar su longitud",
+        "handleA2": "Punta del segundo vector primitivo; arrastra para cambiar su longitud y el ángulo"
+      }
+    },
+    "cubicSystems": {
+      "screenSummary": {
+        "playArea": "El área de juego muestra una celda unidad cúbica dibujada en tres dimensiones y llena de átomos como esferas rígidas. Arrastra la celda para rotarla.",
+        "controlArea": "El área de control tiene un selector de estructura para cúbica simple, cúbica centrada en el cuerpo y cúbica centrada en las caras, deslizadores para la arista de la celda y el radio atómico, un botón que fija el radio a su valor de contacto, casillas de superposición y un botón de Reiniciar todo.",
+        "interactionHint": "Elige una estructura, arrastra el deslizador del radio atómico hasta que las esferas apenas se toquen y observa cómo el factor de empaquetamiento alcanza su máximo."
+      },
+      "currentDetails": "La estructura es {{structure}}, con una arista de celda de {{edge}} nanómetros y un radio atómico de {{radius}} nanómetros. Hay {{atoms}} átomos por celda, cada uno con {{coordination}} vecinos más próximos, y el factor de empaquetamiento es {{apf}}.",
+      "controls": {
+        "structureSelector": "Elegir la estructura cúbica",
+        "cellEdgeSlider": "Longitud de la arista de la celda cúbica",
+        "atomicRadiusSlider": "Radio atómico de las esferas rígidas",
+        "snapToTouching": "Fijar el radio atómico al valor en que las esferas apenas se tocan",
+        "clipPlane": "Recortar la parte frontal de la celda para revelar los átomos interiores",
+        "showSharing": "Mostrar qué fracción de cada átomo pertenece a esta celda",
+        "cellRotation": "Celda unidad cúbica; arrastra para rotarla",
+        "elementSelector": "Elegir un metal cúbico real con el que comparar"
+      }
+    },
+    "closePacking": {
+      "screenSummary": {
+        "playArea": "El área de juego muestra capas compactas de esferas apiladas unas sobre otras, dibujadas en tres dimensiones. Arrastra la pila para rotarla.",
+        "controlArea": "El área de control tiene un selector de secuencia de apilamiento para el empaquetamiento hexagonal y cúbico, un deslizador para el número de capas, un deslizador para la relación axial, un campo para escribir una secuencia propia y un botón de Reiniciar todo.",
+        "interactionHint": "Alterna entre las secuencias A-B-A-B y A-B-C-A-B-C y fíjate en que la fracción de empaquetamiento no cambia, aunque las estructuras parezcan completamente distintas."
+      },
+      "currentDetails": "La pila es {{sequence}}, que corresponde a {{type}}. Tiene {{layers}} capas con una relación axial de {{ratio}}, lo que da un número de coordinación de {{coordination}} y una fracción de empaquetamiento de {{packing}}.",
+      "controls": {
+        "stackingSelector": "Elegir la secuencia de apilamiento",
+        "layerCountSlider": "Número de capas compactas",
+        "cOverASlider": "Relación axial c entre a",
+        "sequenceInput": "Escribir una secuencia de apilamiento con las letras A, B y C",
+        "stackRotation": "Pila de capas compactas; arrastra para rotarla",
+        "showLabels": "Etiquetar cada capa con su posición A, B o C"
+      }
+    },
+    "millerIndices": {
+      "screenSummary": {
+        "playArea": "El área de juego muestra una celda unidad cúbica que contiene o bien un plano cristalográfico con tiradores de intersección arrastrables en los tres ejes, o bien un vector de dirección arrastrable desde el origen de la celda. Arrastra la celda para rotarla.",
+        "controlArea": "El área de control alterna entre el modo de plano y el de dirección, muestra la obtención paso a paso de los índices, ofrece ejemplos resueltos y tiene un campo para introducir índices directamente además de un botón de Reiniciar todo.",
+        "interactionHint": "Arrastra un tirador de intersección y observa cómo el panel convierte las intersecciones en recíprocos y luego en índices enteros."
+      },
+      "currentDetails": "El plano actual es {{plane}} con una distancia interplanar de {{spacing}} nanómetros. Su familia equivalente tiene {{family}} miembros.",
+      "currentDetailsDirection": "La dirección actual es {{direction}}. Su familia equivalente tiene {{family}} miembros.",
+      "controls": {
+        "modeSelector": "Alternar entre el modo de plano y el de dirección",
+        "interceptA": "Dónde corta el plano al eje a",
+        "interceptB": "Dónde corta el plano al eje b",
+        "interceptC": "Dónde corta el plano al eje c",
+        "indexInput": "Escribir un conjunto de tres índices",
+        "showNormal": "Mostrar la dirección perpendicular al plano actual",
+        "showFamily": "Mostrar todos los planos equivalentes a este bajo simetría cúbica",
+        "presetButton": "Cargar un ejemplo resuelto",
+        "cellRotation": "Celda unidad cúbica; arrastra para rotarla",
+        "directionHandle": "Punta del vector de dirección; arrastra para cambiarlo"
+      }
+    },
+    "aperiodicOrder": {
+      "screenSummary": {
+        "playArea": "El área de juego muestra un teselado aperiódico a la izquierda y su patrón de difracción calculado a la derecha. El teselado se construye con los dos rombos de Penrose o con copias de la única tesela sombrero.",
+        "controlArea": "El área de control alterna entre las teselas de Penrose, la tesela einstein y una red periódica de comparación, hace crecer el teselado un paso de sustitución cada vez, activa superposiciones y tiene un botón de Reiniciar todo.",
+        "interactionHint": "Haz crecer el teselado unos pasos y compara su patrón de difracción con el de la red periódica: ambos tienen picos nítidos, pero solo los del teselado tienen simetría decagonal."
+      },
+      "currentDetails": "El teselado tiene {{tiles}} teselas tras {{steps}} pasos de sustitución. Su patrón de difracción tiene {{peaks}} picos de Bragg con simetría rotacional de orden {{symmetry}}.",
+      "controls": {
+        "modeSelector": "Elegir entre las teselas de Penrose, la tesela einstein y una red periódica",
+        "inflate": "Subdividir cada tesela, haciendo crecer el teselado un paso de sustitución",
+        "deflate": "Volver al teselado anterior, más grueso",
+        "autoTile": "Generar automáticamente un parche correcto de teselas sombrero",
+        "highlightOrientations": "Resaltar las cinco direcciones que toman las aristas de las teselas",
+        "showMetatiles": "Colorear cada sombrero según la metatesela a la que pertenece",
+        "showReflected": "Marcar las copias reflejadas del sombrero",
+        "compareLattice": "Mostrar al lado el patrón de difracción de una red periódica",
+        "diffractionView": "Patrón de difracción calculado del teselado actual"
+      }
+    }
+  },
+  "preferences": {
+    "title": "Simulación",
+    "showAdvancedReadouts": "Mostrar magnitudes avanzadas",
+    "showAdvancedReadoutsDescription": "Añade la densidad planar, la densidad superficial y el recuento de picos de difracción a los paneles de magnitudes."
+  }
+}
