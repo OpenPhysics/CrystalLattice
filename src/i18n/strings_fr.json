@@ -1,0 +1,71 @@
+{
+  "title": "Crystal Lattice",
+  "screens": {
+    "lattices2D": "Lattices2D",
+    "cubicSystems": "CubicSystems",
+    "closePacking": "ClosePacking",
+    "millerIndices": "MillerIndices",
+    "aperiodicOrder": "AperiodicOrder"
+  },
+  "a11y": {
+    "lattices2D": {
+      "screenSummary": {
+        "playArea": "La zone de jeu affiche le contenu principal de la simulation.",
+        "controlArea": "La zone de contrôle comporte un bouton Tout réinitialiser qui ramène la simulation à son état initial.",
+        "interactionHint": "Explorez la simulation en interagissant avec ses commandes."
+      },
+      "currentDetails": "La simulation est dans son état initial.",
+      "controls": {
+        "exampleControl": "Contrôle d'exemple"
+      }
+    },
+    "cubicSystems": {
+      "screenSummary": {
+        "playArea": "La zone de jeu affiche le contenu principal de la simulation.",
+        "controlArea": "La zone de contrôle comporte un bouton Tout réinitialiser qui ramène la simulation à son état initial.",
+        "interactionHint": "Explorez la simulation en interagissant avec ses commandes."
+      },
+      "currentDetails": "La simulation est dans son état initial.",
+      "controls": {
+        "exampleControl": "Contrôle d'exemple"
+      }
+    },
+    "closePacking": {
+      "screenSummary": {
+        "playArea": "La zone de jeu affiche le contenu principal de la simulation.",
+        "controlArea": "La zone de contrôle comporte un bouton Tout réinitialiser qui ramène la simulation à son état initial.",
+        "interactionHint": "Explorez la simulation en interagissant avec ses commandes."
+      },
+      "currentDetails": "La simulation est dans son état initial.",
+      "controls": {
+        "exampleControl": "Contrôle d'exemple"
+      }
+    },
+    "millerIndices": {
+      "screenSummary": {
+        "playArea": "La zone de jeu affiche le contenu principal de la simulation.",
+        "controlArea": "La zone de contrôle comporte un bouton Tout réinitialiser qui ramène la simulation à son état initial.",
+        "interactionHint": "Explorez la simulation en interagissant avec ses commandes."
+      },
+      "currentDetails": "La simulation est dans son état initial.",
+      "controls": {
+        "exampleControl": "Contrôle d'exemple"
+      }
+    },
+    "aperiodicOrder": {
+      "screenSummary": {
+        "playArea": "La zone de jeu affiche le contenu principal de la simulation.",
+        "controlArea": "La zone de contrôle comporte un bouton Tout réinitialiser qui ramène la simulation à son état initial.",
+        "interactionHint": "Explorez la simulation en interagissant avec ses commandes."
+      },
+      "currentDetails": "La simulation est dans son état initial.",
+      "controls": {
+        "exampleControl": "Contrôle d'exemple"
+      }
+    }
+  },
+  "preferences": {
+    "title": "Simulation",
+    "exampleToggle": "Exemple de bascule"
+  }
+}
