@@ -1,0 +1,85 @@
+{
+  "comment": "Reference cubic metals for the Cubic Systems screen's identify-the-element mode. Lattice constants in nm at room temperature; molar mass in g/mol; measured density in g/cm3 for comparison against the computed n*M/(N_A*a^3). Sourced from standard crystallographic tables (Callister, Materials Science and Engineering; Kittel, Introduction to Solid State Physics).",
+  "elements": [
+    {
+      "symbol": "Po",
+      "name": "Polonium",
+      "structure": "simpleCubic",
+      "latticeConstantNm": 0.336,
+      "molarMass": 208.98,
+      "measuredDensity": 9.2
+    },
+    {
+      "symbol": "Fe",
+      "name": "Iron",
+      "structure": "bodyCentered",
+      "latticeConstantNm": 0.287,
+      "molarMass": 55.845,
+      "measuredDensity": 7.87
+    },
+    {
+      "symbol": "Cr",
+      "name": "Chromium",
+      "structure": "bodyCentered",
+      "latticeConstantNm": 0.2884,
+      "molarMass": 51.996,
+      "measuredDensity": 7.19
+    },
+    {
+      "symbol": "W",
+      "name": "Tungsten",
+      "structure": "bodyCentered",
+      "latticeConstantNm": 0.3165,
+      "molarMass": 183.84,
+      "measuredDensity": 19.25
+    },
+    {
+      "symbol": "Al",
+      "name": "Aluminium",
+      "structure": "faceCentered",
+      "latticeConstantNm": 0.4049,
+      "molarMass": 26.982,
+      "measuredDensity": 2.7
+    },
+    {
+      "symbol": "Ni",
+      "name": "Nickel",
+      "structure": "faceCentered",
+      "latticeConstantNm": 0.3524,
+      "molarMass": 58.693,
+      "measuredDensity": 8.9
+    },
+    {
+      "symbol": "Cu",
+      "name": "Copper",
+      "structure": "faceCentered",
+      "latticeConstantNm": 0.3615,
+      "molarMass": 63.546,
+      "measuredDensity": 8.96
+    },
+    {
+      "symbol": "Ag",
+      "name": "Silver",
+      "structure": "faceCentered",
+      "latticeConstantNm": 0.4086,
+      "molarMass": 107.868,
+      "measuredDensity": 10.49
+    },
+    {
+      "symbol": "Au",
+      "name": "Gold",
+      "structure": "faceCentered",
+      "latticeConstantNm": 0.4078,
+      "molarMass": 196.967,
+      "measuredDensity": 19.3
+    },
+    {
+      "symbol": "Pb",
+      "name": "Lead",
+      "structure": "faceCentered",
+      "latticeConstantNm": 0.495,
+      "molarMass": 207.2,
+      "measuredDensity": 11.34
+    }
+  ]
+}
