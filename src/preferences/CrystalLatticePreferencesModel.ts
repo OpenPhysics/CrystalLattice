@@ -4,9 +4,6 @@
  * Model for the simulation-specific preferences shown in Preferences →
  * Simulation. Each preference Property takes its initial value from the
  * corresponding query parameter in crystalLatticeQueryParameters.
- *
- * Remove the example preference (and its query parameter / UI control) if the
- * sim has no sim-specific preferences.
  */
 
 import { BooleanProperty } from "scenerystack/axon";
@@ -15,18 +12,19 @@ import CrystalLatticeNamespace from "../CrystalLatticeNamespace.js";
 import crystalLatticeQueryParameters from "./crystalLatticeQueryParameters.js";
 
 export class CrystalLatticePreferencesModel {
-  /** Example preference; initial value comes from the `exampleToggle` query parameter. */
-  public readonly exampleToggleProperty: BooleanProperty;
+  /** Whether the quantity panels show the extra derived readouts. Initial value
+   *  comes from the `showAdvancedReadouts` query parameter. */
+  public readonly showAdvancedReadoutsProperty: BooleanProperty;
 
   public constructor(tandem?: Tandem) {
-    this.exampleToggleProperty = new BooleanProperty(
-      crystalLatticeQueryParameters.exampleToggle,
-      tandem ? { tandem: tandem.createTandem("exampleToggleProperty") } : undefined,
+    this.showAdvancedReadoutsProperty = new BooleanProperty(
+      crystalLatticeQueryParameters.showAdvancedReadouts,
+      tandem ? { tandem: tandem.createTandem("showAdvancedReadoutsProperty") } : undefined,
     );
   }
 
   public reset(): void {
-    this.exampleToggleProperty.reset();
+    this.showAdvancedReadoutsProperty.reset();
   }
 }
 

@@ -293,52 +293,57 @@ export function parseIndexTriple(text: string): IndexTriple | null {
     .trim()
     .replace(/^[([{⟨<]/, "")
     .replace(/[)\]}⟩>]$/, "");
-  const values: number[] = [];
-
   // Comma- or space-separated form first, since it is the only way to type
   // multi-digit indices unambiguously.
-  if (/[,\s]/.test(stripped)) {
-    for (const token of stripped.split(/[,\s]+/).filter((part) => part.length > 0)) {
-      const parsed = parseSingleIndex(token);
-      if (parsed === null) {
-        return null;
-      }
-      values.push(parsed);
-    }
-  } else {
-    // Compact form: one digit per index, with "-" or an overline marking a bar.
-    let pending: 1 | -1 = 1;
-    for (const character of stripped) {
-      if (character === "-") {
-        pending = -1;
-        continue;
-      }
-      if (character === COMBINING_OVERLINE) {
-        // The overline follows its digit, so retro-negate the value just pushed.
-        const last = values.pop();
-        if (last === undefined) {
-          return null;
-        }
-        values.push(-Math.abs(last));
-        continue;
-      }
-      if (!/\d/.test(character)) {
-        return null;
-      }
-      values.push(pending * Number(character));
-      pending = 1;
-    }
-  }
+  const values = /[,\s]/.test(stripped) ? parseSeparated(stripped) : parseCompact(stripped);
 
-  if (values.length !== 3) {
+  if (values === null || values.length !== 3) {
     return null;
   }
   return [values[0] ?? 0, values[1] ?? 0, values[2] ?? 0];
 }
 
+/** "1,-1,0" or "1 -1 0" — one token per index, so indices may be multi-digit. */
+function parseSeparated(text: string): number[] | null {
+  const values: number[] = [];
+  for (const token of text.split(/[,\s]+/).filter((part) => part.length > 0)) {
+    const parsed = parseSingleIndex(token);
+    if (parsed === null) {
+      return null;
+    }
+    values.push(parsed);
+  }
+  return values;
+}
+
+/** "1-10" or "1̄10" — one digit per index, with "-" or an overline marking a bar. */
+function parseCompact(text: string): number[] | null {
+  const values: number[] = [];
+  let pending: 1 | -1 = 1;
+
+  for (const character of text) {
+    if (character === "-") {
+      pending = -1;
+    } else if (character === COMBINING_OVERLINE) {
+      // The overline follows its digit, so retro-negate the value just pushed.
+      const last = values.pop();
+      if (last === undefined) {
+        return null;
+      }
+      values.push(-Math.abs(last));
+    } else if (/\d/.test(character)) {
+      values.push(pending * Number(character));
+      pending = 1;
+    } else {
+      return null;
+    }
+  }
+  return values;
+}
+
 function parseSingleIndex(token: string): number | null {
   const hasOverline = token.includes(COMBINING_OVERLINE);
-  const digits = token.replace(new RegExp(COMBINING_OVERLINE, "g"), "");
+  const digits = token.replaceAll(COMBINING_OVERLINE, "");
   const parsed = Number(digits);
   if (!Number.isInteger(parsed)) {
     return null;
@@ -368,44 +373,57 @@ export function planePolygonInCell(indices: IndexTriple, latticeConstant: number
   const constant = offset * latticeConstant;
   const points: Vector3[] = [];
 
-  // Intersect the plane with each of the cube's twelve edges.
-  const corners: Array<readonly [number, number, number]> = [];
+  for (const [start, end] of cubeEdges(latticeConstant)) {
+    const crossing = segmentPlaneCrossing(start, end, normal, constant);
+    if (crossing !== null) {
+      points.push(crossing);
+    }
+  }
+
+  return sortAroundNormal(deduplicate(points), normal);
+}
+
+/** The twelve edges of the cube [0, a]³, as endpoint pairs in model units. */
+function cubeEdges(latticeConstant: number): Array<readonly [Vector3, Vector3]> {
+  const corners: Vector3[] = [];
   for (const x of [0, 1]) {
     for (const y of [0, 1]) {
       for (const z of [0, 1]) {
-        corners.push([x, y, z]);
+        corners.push(new Vector3(x, y, z).timesScalar(latticeConstant));
       }
     }
   }
 
+  const edges: Array<readonly [Vector3, Vector3]> = [];
   for (let i = 0; i < corners.length; i++) {
     for (let j = i + 1; j < corners.length; j++) {
       // biome-ignore lint/style/noNonNullAssertion: indices are bounded by the loops
       const from = corners[i]!;
       // biome-ignore lint/style/noNonNullAssertion: indices are bounded by the loops
       const to = corners[j]!;
-      const differing = (from[0] === to[0] ? 0 : 1) + (from[1] === to[1] ? 0 : 1) + (from[2] === to[2] ? 0 : 1);
-      if (differing !== 1) {
-        continue; // not a cube edge
+      // Two corners bound an edge when they differ in exactly one coordinate.
+      const differing = (from.x === to.x ? 0 : 1) + (from.y === to.y ? 0 : 1) + (from.z === to.z ? 0 : 1);
+      if (differing === 1) {
+        edges.push([from, to]);
       }
-
-      const start = new Vector3(from[0], from[1], from[2]).timesScalar(latticeConstant);
-      const end = new Vector3(to[0], to[1], to[2]).timesScalar(latticeConstant);
-      const startValue = normal.dot(start);
-      const endValue = normal.dot(end);
-
-      if (Math.abs(endValue - startValue) < 1e-12) {
-        continue; // edge parallel to the plane
-      }
-      const t = (constant - startValue) / (endValue - startValue);
-      if (t < -1e-9 || t > 1 + 1e-9) {
-        continue; // crossing lies outside this edge
-      }
-      points.push(start.plus(end.minus(start).timesScalar(t)));
     }
   }
+  return edges;
+}
 
-  return sortAroundNormal(deduplicate(points), normal);
+/** Where the segment meets the plane `normal · p = constant`, or null if it misses. */
+function segmentPlaneCrossing(start: Vector3, end: Vector3, normal: Vector3, constant: number): Vector3 | null {
+  const startValue = normal.dot(start);
+  const endValue = normal.dot(end);
+
+  if (Math.abs(endValue - startValue) < 1e-12) {
+    return null; // segment parallel to the plane
+  }
+  const t = (constant - startValue) / (endValue - startValue);
+  if (t < -1e-9 || t > 1 + 1e-9) {
+    return null; // crossing lies beyond the segment's ends
+  }
+  return start.plus(end.minus(start).timesScalar(t));
 }
 
 function deduplicate(points: readonly Vector3[]): Vector3[] {

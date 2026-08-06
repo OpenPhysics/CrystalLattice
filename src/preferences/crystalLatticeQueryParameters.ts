@@ -11,7 +11,7 @@
  * 2. If it should also be user-editable at runtime, surface it as a preference
  *    in CrystalLatticePreferencesModel (initialize that Property from this query parameter).
  *
- * Usage: append e.g. `?exampleToggle=true` to the sim URL.
+ * Usage: append e.g. `?showAdvancedReadouts=true` to the sim URL.
  */
 
 import { logGlobal } from "scenerystack/phet-core";
@@ -20,10 +20,11 @@ import CrystalLatticeNamespace from "../CrystalLatticeNamespace.js";
 
 const crystalLatticeQueryParameters = QueryStringMachine.getAll({
   /**
-   * Example public boolean parameter. Replace with real sim-specific parameters,
-   * or remove if the sim has none.
+   * Adds the secondary derived quantities — planar density, areal density and
+   * diffraction peak counts — to every screen's quantity panel. Off by default
+   * so a first-time reader is not handed six numbers at once.
    */
-  exampleToggle: {
+  showAdvancedReadouts: {
     type: "boolean",
     defaultValue: false,
     public: true,

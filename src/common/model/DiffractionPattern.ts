@@ -161,31 +161,27 @@ export function findPeaks(result: DiffractionResult, threshold = 0.02, maximumCo
   for (let row = 1; row < result.resolution - 1; row++) {
     for (let column = 1; column < result.resolution - 1; column++) {
       const intensity = intensityAt(result, column, row);
-      if (intensity < threshold) {
-        continue;
-      }
-      if (kVectorAt(result, column, row).magnitude <= exclusionRadius) {
-        continue; // inside the beam stop
-      }
-      let isLocalMaximum = true;
-      for (let dr = -1; dr <= 1 && isLocalMaximum; dr++) {
-        for (let dc = -1; dc <= 1; dc++) {
-          if (dr === 0 && dc === 0) {
-            continue;
-          }
-          if (intensityAt(result, column + dc, row + dr) > intensity) {
-            isLocalMaximum = false;
-            break;
-          }
-        }
-      }
-      if (isLocalMaximum) {
-        peaks.push({ k: kVectorAt(result, column, row), intensity });
+      const k = kVectorAt(result, column, row);
+      // Skip dim cells and anything behind the beam stop before the 3×3 scan.
+      if (intensity >= threshold && k.magnitude > exclusionRadius && isLocalMaximum(result, column, row, intensity)) {
+        peaks.push({ k, intensity });
       }
     }
   }
 
   return peaks.sort((a, b) => b.intensity - a.intensity).slice(0, maximumCount);
+}
+
+/** Whether the cell is at least as bright as all eight of its neighbours. */
+function isLocalMaximum(result: DiffractionResult, column: number, row: number, intensity: number): boolean {
+  for (let dr = -1; dr <= 1; dr++) {
+    for (let dc = -1; dc <= 1; dc++) {
+      if ((dr !== 0 || dc !== 0) && intensityAt(result, column + dc, row + dr) > intensity) {
+        return false;
+      }
+    }
+  }
+  return true;
 }
 
 /**

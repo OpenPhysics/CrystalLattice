@@ -1,71 +1,238 @@
 {
-  "title": "Crystal Lattice",
+  "title": "Réseau Cristallin",
   "screens": {
-    "lattices2D": "Lattices2D",
-    "cubicSystems": "CubicSystems",
-    "closePacking": "ClosePacking",
-    "millerIndices": "MillerIndices",
-    "aperiodicOrder": "AperiodicOrder"
+    "lattices2D": "Réseaux 2D",
+    "cubicSystems": "Systèmes cubiques",
+    "closePacking": "Empilement compact",
+    "millerIndices": "Indices de Miller",
+    "aperiodicOrder": "Ordre apériodique"
+  },
+  "common": {
+    "quantities": "Grandeurs",
+    "overlays": "Afficher",
+    "structure": "Structure",
+    "reset": "Réinitialiser",
+    "coordinationNumber": "Nombre de coordination",
+    "atomsPerCell": "Atomes par maille",
+    "packingFraction": "Compacité",
+    "none": "aucun"
+  },
+  "lattices2D": {
+    "vectorA1": "|a₁|",
+    "vectorA2": "|a₂|",
+    "gamma": "γ",
+    "centeredBasis": "Second atome au centre de la maille",
+    "primitiveCell": "Maille primitive",
+    "wignerSeitzCell": "Maille de Wigner–Seitz",
+    "bisectors": "Construction par médiatrices",
+    "coordinationShell": "Couche des plus proches voisins",
+    "snapTo": "Aligner sur",
+    "latticeType": "Type de réseau",
+    "cellArea": "Aire de la maille",
+    "arealDensity": "Densité surfacique",
+    "nearestNeighbour": "Plus proche voisin",
+    "types": {
+      "square": "Carré",
+      "rectangular": "Rectangulaire",
+      "centeredRectangular": "Rectangulaire centré",
+      "hexagonal": "Hexagonal",
+      "oblique": "Oblique"
+    }
+  },
+  "cubicSystems": {
+    "cellEdge": "Arête de maille a",
+    "atomicRadius": "Rayon atomique r",
+    "snapToTouching": "Aligner r sur le contact",
+    "clipPlane": "Couper l'avant",
+    "showSharing": "Afficher les fractions partagées",
+    "structures": {
+      "simpleCubic": "Cubique simple",
+      "bodyCentered": "Cubique centré",
+      "faceCentered": "Cubique à faces centrées"
+    },
+    "touchingRelation": "Condition de contact",
+    "touchingRadius": "Rayon de contact",
+    "packingFactor": "Compacité APF",
+    "identifyElement": "Identifier l'élément",
+    "element": "Élément",
+    "computedDensity": "Masse volumique calculée",
+    "measuredDensity": "Masse volumique mesurée",
+    "overlapWarning": "Les sphères se recouvrent : ce n'est plus un modèle de sphères dures",
+    "noMatch": "Aucune correspondance tabulée"
+  },
+  "closePacking": {
+    "layerCount": "Couches",
+    "cOverA": "Rapport axial c/a",
+    "sequence": "Séquence d'empilement",
+    "sequenceInput": "Saisir une séquence",
+    "idealRatio": "c/a idéal",
+    "stackingType": "Empilement",
+    "interlayerSpacing": "Distance entre couches",
+    "realCrystals": "Métaux HCP réels",
+    "showLabels": "Étiqueter les couches A, B, C",
+    "types": {
+      "hcp": "HCP (ABAB…)",
+      "fcc": "FCC (ABCABC…)",
+      "mixed": "Faute d'empilement",
+      "invalid": "Non compact",
+      "custom": "Personnalisée"
+    }
+  },
+  "millerIndices": {
+    "planeMode": "Plan (hkl)",
+    "directionMode": "Direction [uvw]",
+    "interceptA": "Intersection avec a",
+    "interceptB": "Intersection avec b",
+    "interceptC": "Intersection avec c",
+    "parallel": "∥ (à l'infini)",
+    "derivation": "Comment trouver les indices",
+    "stepIntercepts": "1. Intersections",
+    "stepReciprocals": "2. Inverses",
+    "stepCleared": "3. Ramenés à des entiers",
+    "stepReduced": "4. Réduits",
+    "interplanarSpacing": "Distance interréticulaire d",
+    "planarDensity": "Densité planaire",
+    "family": "Famille équivalente",
+    "familySize": "Membres",
+    "showNormal": "Afficher la direction normale [hkl]",
+    "showFamily": "Afficher la famille équivalente",
+    "presets": "Exemples résolus",
+    "enterIndices": "Saisir des indices",
+    "invalidIndices": "Saisissez trois indices, par exemple (1-10)",
+    "twoHundredNote": "(200) est parallèle à (100) mais avec une distance deux fois plus petite : pour les plans, on ne divise pas par le facteur commun."
+  },
+  "aperiodicOrder": {
+    "intro": "Les écrans 1 à 4 supposaient tous un petit motif répété par translation. L'ordre peut-il exister sans ce motif répété ?",
+    "penroseMode": "Tuiles de Penrose",
+    "einsteinMode": "Tuile einstein",
+    "periodicMode": "Réseau périodique",
+    "inflate": "Gonfler",
+    "deflate": "Revenir en arrière",
+    "autoTile": "Paver automatiquement",
+    "inflationLevel": "Étapes de gonflement",
+    "substitutionLevel": "Étapes de substitution",
+    "highlightOrientations": "Mettre en évidence les cinq directions d'arête",
+    "showMetatiles": "Colorer par métatuile",
+    "showReflected": "Marquer les tuiles réfléchies",
+    "showSpectre": "Afficher la tuile spectre",
+    "tileCounts": "Nombre de tuiles",
+    "thickTiles": "Losanges épais",
+    "thinTiles": "Losanges fins",
+    "tileRatio": "Épais : fin",
+    "goldenRatio": "Nombre d'or φ",
+    "hatCount": "Chapeaux",
+    "reflectedCount": "Chapeaux réfléchis",
+    "diffraction": "Figure de diffraction",
+    "realSpace": "Espace réel",
+    "symmetryOrder": "Ordre de symétrie",
+    "peakCount": "Pics de Bragg",
+    "pointCount": "Diffuseurs",
+    "compareLattice": "Comparer avec un réseau périodique",
+    "forbiddenNote": "Des pics nets signifient un ordre à longue distance. La symétrie d'ordre dix est interdite pour tout réseau périodique : seuls les axes d'ordre 1, 2, 3, 4 et 6 sont compatibles avec la périodicité par translation.",
+    "shechtmanNote": "C'est ce que Shechtman a mesuré dans un Al–Mn refroidi rapidement en 1982, et ce qui a valu le prix Nobel de chimie 2011.",
+    "hatSpectreNote": "Le chapeau ne pave le plan que si les copies réfléchies sont autorisées. Le spectre, trouvé quelques mois plus tard, ne nécessite que des rotations d'une seule tuile chirale.",
+    "tooManyPoints": "Trop de points pour une transformée en direct : revenez en arrière pour voir la figure."
   },
   "a11y": {
     "lattices2D": {
       "screenSummary": {
-        "playArea": "La zone de jeu affiche le contenu principal de la simulation.",
-        "controlArea": "La zone de contrôle comporte un bouton Tout réinitialiser qui ramène la simulation à son état initial.",
-        "interactionHint": "Explorez la simulation en interagissant avec ses commandes."
+        "playArea": "L'aire de jeu montre un réseau bidimensionnel d'atomes construit à partir de deux vecteurs primitifs partant d'un atome origine mis en évidence. Des poignées aux extrémités des deux vecteurs fixent leurs longueurs et l'angle entre eux.",
+        "controlArea": "L'aire de commande comporte des curseurs pour les deux longueurs de vecteur et l'angle entre eux, des cases à cocher pour les calques maille primitive, maille de Wigner-Seitz, construction par médiatrices et couche des plus proches voisins, une commande qui aligne le réseau sur un type de Bravais choisi, et un bouton Tout réinitialiser.",
+        "interactionHint": "Faites glisser les poignées des vecteurs ou utilisez les curseurs pour modifier le réseau, et surveillez l'affichage du type de réseau pour retrouver chacun des cinq réseaux de Bravais bidimensionnels."
       },
-      "currentDetails": "La simulation est dans son état initial.",
+      "currentDetails": "Le réseau est actuellement {{type}}, avec un premier vecteur de {{a1}} nanomètres, un second de {{a2}} nanomètres et {{gamma}} degrés entre eux. Chaque atome a {{coordination}} plus proches voisins.",
       "controls": {
-        "exampleControl": "Contrôle d'exemple"
+        "vectorA1Slider": "Longueur du premier vecteur primitif",
+        "vectorA2Slider": "Longueur du second vecteur primitif",
+        "gammaSlider": "Angle entre les deux vecteurs primitifs",
+        "centeredBasis": "Placer un second atome au centre de chaque maille",
+        "primitiveCell": "Ombrer la maille élémentaire primitive",
+        "wignerSeitzCell": "Afficher la maille de Wigner-Seitz",
+        "bisectors": "Afficher les médiatrices servant à construire la maille de Wigner-Seitz",
+        "coordinationShell": "Afficher un cercle passant par les plus proches voisins",
+        "snapTo": "Aligner le réseau sur un type de Bravais choisi",
+        "handleA1": "Extrémité du premier vecteur primitif ; faites glisser pour changer sa longueur",
+        "handleA2": "Extrémité du second vecteur primitif ; faites glisser pour changer sa longueur et l'angle"
       }
     },
     "cubicSystems": {
       "screenSummary": {
-        "playArea": "La zone de jeu affiche le contenu principal de la simulation.",
-        "controlArea": "La zone de contrôle comporte un bouton Tout réinitialiser qui ramène la simulation à son état initial.",
-        "interactionHint": "Explorez la simulation en interagissant avec ses commandes."
+        "playArea": "L'aire de jeu montre une maille élémentaire cubique dessinée en trois dimensions et remplie d'atomes en sphères dures. Faites glisser la maille pour la faire tourner.",
+        "controlArea": "L'aire de commande comporte un sélecteur de structure pour cubique simple, cubique centré et cubique à faces centrées, des curseurs pour l'arête de maille et le rayon atomique, un bouton qui fixe le rayon à sa valeur de contact, des cases à cocher de calques et un bouton Tout réinitialiser.",
+        "interactionHint": "Choisissez une structure, puis faites glisser le curseur du rayon atomique jusqu'à ce que les sphères se touchent tout juste, et regardez la compacité atteindre son maximum."
       },
-      "currentDetails": "La simulation est dans son état initial.",
+      "currentDetails": "La structure est {{structure}}, avec une arête de maille de {{edge}} nanomètres et un rayon atomique de {{radius}} nanomètres. Il y a {{atoms}} atomes par maille, chacun avec {{coordination}} plus proches voisins, et la compacité est de {{apf}}.",
       "controls": {
-        "exampleControl": "Contrôle d'exemple"
+        "structureSelector": "Choisir la structure cubique",
+        "cellEdgeSlider": "Longueur de l'arête de la maille cubique",
+        "atomicRadiusSlider": "Rayon atomique des sphères dures",
+        "snapToTouching": "Fixer le rayon atomique à la valeur où les sphères se touchent tout juste",
+        "clipPlane": "Couper l'avant de la maille pour révéler les atomes intérieurs",
+        "showSharing": "Afficher quelle fraction de chaque atome appartient à cette maille",
+        "cellRotation": "Maille élémentaire cubique ; faites glisser pour la faire tourner",
+        "elementSelector": "Choisir un métal cubique réel pour la comparaison"
       }
     },
     "closePacking": {
       "screenSummary": {
-        "playArea": "La zone de jeu affiche le contenu principal de la simulation.",
-        "controlArea": "La zone de contrôle comporte un bouton Tout réinitialiser qui ramène la simulation à son état initial.",
-        "interactionHint": "Explorez la simulation en interagissant avec ses commandes."
+        "playArea": "L'aire de jeu montre des couches compactes de sphères empilées les unes sur les autres, dessinées en trois dimensions. Faites glisser l'empilement pour le faire tourner.",
+        "controlArea": "L'aire de commande comporte un sélecteur de séquence d'empilement pour l'empilement compact hexagonal et cubique, un curseur pour le nombre de couches, un curseur pour le rapport axial, un champ pour saisir une séquence personnalisée et un bouton Tout réinitialiser.",
+        "interactionHint": "Passez de la séquence A-B-A-B à A-B-C-A-B-C et remarquez que la compacité ne change pas, même si les structures paraissent totalement différentes."
       },
-      "currentDetails": "La simulation est dans son état initial.",
+      "currentDetails": "L'empilement est {{sequence}}, ce qui correspond à {{type}}. Il compte {{layers}} couches pour un rapport axial de {{ratio}}, ce qui donne un nombre de coordination de {{coordination}} et une compacité de {{packing}}.",
       "controls": {
-        "exampleControl": "Contrôle d'exemple"
+        "stackingSelector": "Choisir la séquence d'empilement",
+        "layerCountSlider": "Nombre de couches compactes",
+        "cOverASlider": "Rapport axial c sur a",
+        "sequenceInput": "Saisir une séquence d'empilement avec les lettres A, B et C",
+        "stackRotation": "Empilement de couches compactes ; faites glisser pour le faire tourner",
+        "showLabels": "Étiqueter chaque couche par sa position A, B ou C"
       }
     },
     "millerIndices": {
       "screenSummary": {
-        "playArea": "La zone de jeu affiche le contenu principal de la simulation.",
-        "controlArea": "La zone de contrôle comporte un bouton Tout réinitialiser qui ramène la simulation à son état initial.",
-        "interactionHint": "Explorez la simulation en interagissant avec ses commandes."
+        "playArea": "L'aire de jeu montre une maille élémentaire cubique contenant soit un plan cristallographique avec des poignées d'intersection déplaçables sur les trois axes, soit un vecteur direction déplaçable depuis l'origine de la maille. Faites glisser la maille pour la faire tourner.",
+        "controlArea": "L'aire de commande bascule entre le mode plan et le mode direction, montre l'obtention pas à pas des indices, propose des exemples résolus, et comporte un champ de saisie directe des indices ainsi qu'un bouton Tout réinitialiser.",
+        "interactionHint": "Faites glisser une poignée d'intersection et regardez le panneau transformer les intersections en inverses puis en indices entiers."
       },
-      "currentDetails": "La simulation est dans son état initial.",
+      "currentDetails": "Le plan actuel est {{plane}} avec une distance interréticulaire de {{spacing}} nanomètres. Sa famille équivalente compte {{family}} membres.",
+      "currentDetailsDirection": "La direction actuelle est {{direction}}. Sa famille équivalente compte {{family}} membres.",
       "controls": {
-        "exampleControl": "Contrôle d'exemple"
+        "modeSelector": "Basculer entre le mode plan et le mode direction",
+        "interceptA": "Où le plan coupe l'axe a",
+        "interceptB": "Où le plan coupe l'axe b",
+        "interceptC": "Où le plan coupe l'axe c",
+        "indexInput": "Saisir un jeu de trois indices",
+        "showNormal": "Afficher la direction perpendiculaire au plan actuel",
+        "showFamily": "Afficher tous les plans équivalents à celui-ci par symétrie cubique",
+        "presetButton": "Charger un exemple résolu",
+        "cellRotation": "Maille élémentaire cubique ; faites glisser pour la faire tourner",
+        "directionHandle": "Extrémité du vecteur direction ; faites glisser pour le modifier"
       }
     },
     "aperiodicOrder": {
       "screenSummary": {
-        "playArea": "La zone de jeu affiche le contenu principal de la simulation.",
-        "controlArea": "La zone de contrôle comporte un bouton Tout réinitialiser qui ramène la simulation à son état initial.",
-        "interactionHint": "Explorez la simulation en interagissant avec ses commandes."
+        "playArea": "L'aire de jeu montre un pavage apériodique à gauche et sa figure de diffraction calculée à droite. Le pavage est construit soit à partir des deux losanges de Penrose, soit à partir de copies de l'unique tuile chapeau.",
+        "controlArea": "L'aire de commande bascule entre les tuiles de Penrose, la tuile einstein et un réseau périodique de comparaison, fait croître le pavage d'une étape de substitution à la fois, active des calques et comporte un bouton Tout réinitialiser.",
+        "interactionHint": "Faites croître le pavage de quelques étapes et comparez sa figure de diffraction à celle du réseau périodique : toutes deux ont des pics nets, mais seuls ceux du pavage ont une symétrie d'ordre dix."
       },
-      "currentDetails": "La simulation est dans son état initial.",
+      "currentDetails": "Le pavage compte {{tiles}} tuiles après {{steps}} étapes de substitution. Sa figure de diffraction présente {{peaks}} pics de Bragg avec une symétrie de rotation d'ordre {{symmetry}}.",
       "controls": {
-        "exampleControl": "Contrôle d'exemple"
+        "modeSelector": "Choisir entre les tuiles de Penrose, la tuile einstein et un réseau périodique",
+        "inflate": "Subdiviser chaque tuile, faisant croître le pavage d'une étape de substitution",
+        "deflate": "Revenir au pavage précédent, plus grossier",
+        "autoTile": "Faire croître automatiquement un domaine correct de tuiles chapeau",
+        "highlightOrientations": "Mettre en évidence les cinq directions que prennent les arêtes des tuiles",
+        "showMetatiles": "Colorer chaque chapeau selon la métatuile à laquelle il appartient",
+        "showReflected": "Marquer les copies réfléchies du chapeau",
+        "compareLattice": "Afficher à côté la figure de diffraction d'un réseau périodique",
+        "diffractionView": "Figure de diffraction calculée du pavage actuel"
       }
     }
   },
   "preferences": {
     "title": "Simulation",
-    "exampleToggle": "Exemple de bascule"
+    "showAdvancedReadouts": "Afficher les grandeurs avancées",
+    "showAdvancedReadoutsDescription": "Ajoute la densité planaire, la densité surfacique et le nombre de pics de diffraction aux panneaux de grandeurs."
   }
 }

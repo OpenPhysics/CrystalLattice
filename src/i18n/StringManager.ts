@@ -117,6 +117,36 @@ export class StringManager {
     return stringProperties.a11y.aperiodicOrder;
   }
 
+  /** Labels shared by more than one screen's panels. */
+  public getCommonStrings() {
+    return stringProperties.common;
+  }
+
+  /** Visible labels for the 2D Lattices screen. */
+  public getLattices2DStrings() {
+    return stringProperties.lattices2D;
+  }
+
+  /** Visible labels for the Cubic Systems screen. */
+  public getCubicSystemsStrings() {
+    return stringProperties.cubicSystems;
+  }
+
+  /** Visible labels for the Close-Packing screen. */
+  public getClosePackingStrings() {
+    return stringProperties.closePacking;
+  }
+
+  /** Visible labels for the Miller Indices screen. */
+  public getMillerIndicesStrings() {
+    return stringProperties.millerIndices;
+  }
+
+  /** Visible labels for the Aperiodic Order screen. */
+  public getAperiodicOrderStrings() {
+    return stringProperties.aperiodicOrder;
+  }
+
   /**
    * Simulation-specific preference labels shown in Preferences → Simulation.
    */

@@ -27,9 +27,9 @@ export class CrystalLatticePreferencesNode extends VBox {
       fill: CrystalLatticeColors.controlSurfaceTextColorProperty,
     });
 
-    const exampleToggleCheckbox = new Checkbox(
-      preferencesModel.exampleToggleProperty,
-      new Text(prefStrings.exampleToggleStringProperty, {
+    const showAdvancedReadoutsCheckbox = new Checkbox(
+      preferencesModel.showAdvancedReadoutsProperty,
+      new Text(prefStrings.showAdvancedReadoutsStringProperty, {
         font: new PhetFont(14),
         fill: CrystalLatticeColors.controlSurfaceTextColorProperty,
       }),
@@ -37,14 +37,14 @@ export class CrystalLatticePreferencesNode extends VBox {
         checkboxColor: CrystalLatticeColors.controlSurfaceTextColorProperty,
         checkboxColorBackground: CrystalLatticeColors.controlSurfaceColorProperty,
         spacing: 8,
-        ...(tandem && { tandem: tandem.createTandem("exampleToggleCheckbox") }),
+        ...(tandem && { tandem: tandem.createTandem("showAdvancedReadoutsCheckbox") }),
       },
     );
 
     super({
       align: "left",
       spacing: 12,
-      children: [header, exampleToggleCheckbox],
+      children: [header, showAdvancedReadoutsCheckbox],
     });
   }
 }
