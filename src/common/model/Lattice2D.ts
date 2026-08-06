@@ -338,10 +338,12 @@ export function wignerSeitzBisectors(parameters: Lattice2DParameters, neighborRa
       if (neighbor.magnitude === 0) {
         continue;
       }
-      // The bisector bounds the cell only if some cell vertex lies on it.
+      // A bisector contributes an *edge* only if two cell vertices lie on it.
+      // Requiring two is what excludes the diagonal neighbours of a square
+      // lattice, whose bisectors clip the cell's corners without bounding it.
       const halfSquared = neighbor.magnitudeSquared / 2;
-      const touches = cell.some((vertex) => Math.abs(vertex.dot(neighbor) - halfSquared) <= 1e-6 * halfSquared);
-      if (touches) {
+      const onBisector = cell.filter((vertex) => Math.abs(vertex.dot(neighbor) - halfSquared) <= 1e-6 * halfSquared);
+      if (onBisector.length >= 2) {
         contributing.push({ neighbor, midpoint: neighbor.timesScalar(0.5) });
       }
     }
