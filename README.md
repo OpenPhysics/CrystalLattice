@@ -1,11 +1,31 @@
 # Crystal Lattice
 
-A reusable SceneryStack simulation template for one or N screens, built with
+An interactive simulation of crystal structure, built with
 [SceneryStack](https://scenerystack.org/), Vite 8, TypeScript 7, and Biome 2.
+
+Students build 2D Bravais lattices and 3D cubic and close-packed structures, read off the
+quantities that follow from them, learn to index planes and directions — and then, on the last
+screen, meet the case where the repeating unit cell every earlier screen assumed turns out not to
+be necessary at all.
+
+## Screens
+
+| Screen | What it shows |
+|---|---|
+| **2D Lattices** | Drag two primitive vectors and find the five 2D Bravais lattices. Primitive cell, Wigner–Seitz construction, coordination shell, areal density. |
+| **Cubic Systems** | Build SC, BCC and FCC cells. Count shared atoms, discover the touching condition by dragging into it, and compare the computed density against real cubic metals. |
+| **Close-Packing** | Stack ABAB versus ABCABC and watch the packing fraction *not* move. Axial-ratio slider, real-metal c/a table, and classification of any stacking fault. |
+| **Miller Indices** | Translate between geometry and (hkl) / [uvw] notation, with the intercepts → reciprocals → clear → reduce derivation shown in full. Includes why (200) ≠ (100). |
+| **Aperiodic Order** | Penrose tilings and the 2023 "hat" monotile, with a live diffraction pattern beside a periodic lattice's: both sharp, but only one with ten-fold symmetry. |
+
+The physics is documented for educators in [`doc/model.md`](doc/model.md) and for developers in
+[`doc/implementation-notes.md`](doc/implementation-notes.md).
 
 ## Features
 
-- SceneryStack scaffold with model/view separation (`rename` + `scaffold-screens` for one or N screens)
+- Model/view separation, with all crystallography in Scenery-free modules under `src/common/model/`
+- 184 unit tests covering the geometry, the tiling generators, and the diffraction transform
+- Full Interactive Description support: live screen summaries, named controls, explicit PDOM order
 - English, Spanish, and French localization via `StringManager`
 - Default and projector color profiles
 - Progressive Web App (installable, offline-capable)
@@ -35,11 +55,11 @@ npm start        # dev server → http://localhost:5173
 | `npm run format` | Auto-format all files |
 | `npm run fix` | Lint + auto-fix |
 | `npm run icons` | Regenerate PNG icons from `public/icons/icon.svg` |
-| `npm run rename` | Sim-level fork/rename (`--id`, `--name`) |
-| `npm run scaffold-screens` | Emit N fleet-named screen packages from `lattices2-d/` (`--shared-model` optional) |
 | `npm run clean` | Remove `dist/` |
 
-New sims start at `version: "0.0.0"` in `package.json`. Bump only when cutting a release (for example `npm version patch` and a matching git tag). Keep `name` in kebab-case; it is separate from the SceneryStack sim identifier in `src/init.ts`.
+The sim starts at `version: "0.0.0"` in `package.json`. Bump only when cutting a release (for example `npm version patch` and a matching git tag).
+
+`scripts/rename-sim.ts` and `scripts/scaffold-screens.ts` are inherited from the template and are no longer used here; they remain in the tree so template updates can still be merged cleanly.
 
 ## Tech Stack
 
@@ -54,6 +74,9 @@ New sims start at `version: "0.0.0"` in `package.json`. Bump only when cutting a
 ## License
 
 GNU Affero General Public License v3.0 — see [OpenPhysics org license](https://github.com/OpenPhysics/.github/blob/main/LICENSE).
+
+`src/common/model/EinsteinTiling.ts` is a port of Craig S. Kaplan's `hatviz`, used under its
+BSD 3-Clause licence; the full notice and the scientific sources are in [CREDITS.md](CREDITS.md).
 
 ## Contributing
 

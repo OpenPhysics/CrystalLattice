@@ -4,124 +4,130 @@ Sim-specific context for AI assistants. General SceneryStack guidance: [OpenPhys
 
 ## Project
 
-Reusable SceneryStack template (one or N screens) and **canonical accessibility reference** for
-OpenPhysics sims. Prefer `Baton/scripts/create-sim.sh` (or GitHub **Use this template** +
-`npm run rename` + `npm run scaffold-screens`) to fork it. For multi-screen sims, see
-[`doc/multi-screen.md`](doc/multi-screen.md).
+A five-screen simulation of crystal structure, forked from
+[SceneryStackTemplate](https://github.com/OpenPhysics/SceneryStackTemplate). The screens form an
+argument, not a topic list: Screens 1–4 build up the repeating-unit-cell picture, and Screen 5
+withdraws it. Educator-facing physics is in [`doc/model.md`](doc/model.md); architecture is in
+[`doc/implementation-notes.md`](doc/implementation-notes.md).
+
+## The one thing to understand first
+
+**All crystallography lives in Scenery-free modules under `src/common/model/`.** Those files import
+nothing from `scenerystack/scenery` and hold no `Property` — they are pure functions over plain data,
+which is why `tests/` can exercise the real physics without a DOM. Each screen's Property-holding
+model (`src/cubic-systems/model/CubicSystemsModel.ts` and friends) is a thin reactive layer on top.
+
+When adding physics, put it in the pure layer and derive it into a screen model. Putting a formula in
+a view or a screen model is the mistake this codebase is arranged to prevent.
 
 ## Key files
 
 | File | Purpose |
 |---|---|
-| `src/CrystalLatticeColors.ts` | All `ProfileColorProperty` instances |
-| `src/CrystalLatticeConstants.ts` | Named numeric constants (layout px, physics SI units) |
+| `src/CrystalLatticeColors.ts` | All `ProfileColorProperty` instances (structure, layers, tilings, diffraction) |
+| `src/CrystalLatticeConstants.ts` | Every named numeric constant — slider ranges, layout px, diffraction budget |
 | `src/CrystalLatticeNamespace.ts` | Namespace for color property names |
-| `src/i18n/StringManager.ts` | Singleton localized string accessor |
-| `src/lattices2-d/Lattices2DScreen.ts` | Screen wrapper |
-| `src/lattices2-d/model/Lattices2DModel.ts` | Simulation state and logic |
-| `src/lattices2-d/view/Lattices2DScreenView.ts` | Visual nodes, layout, `screenSummaryContent` + `pdomOrder` |
-| `src/lattices2-d/view/Lattices2DScreenSummaryContent.ts` | Accessible screen summary (reference a11y pattern) |
-| `src/lattices2-d/view/Lattices2DKeyboardHelpContent.ts` | Keyboard-help dialog content |
-| `src/common/CrystalLatticePanel.ts` | Pre-themed `Panel` wrapper (uses `CrystalLatticeColors` automatically) |
-| `src/common/CrystalLatticeButtonOptions.ts` | Flat button-appearance option bundles + light-control-surface combo-box options |
-| `src/common/TimeModel.ts` | Composable play/pause + elapsed-time model for animated sims |
-| `scripts/generate-icons.ts` | PNG icons from `public/icons/icon.svg` |
-| `scripts/rename-sim.ts` | Sim-level fork/rename (package id + metadata, Colors, Constants, Panel, ButtonOptions, Preferences) |
-| `scripts/scaffold-screens.ts` | Emit N screen packages + wire main/strings/icons |
+| `src/i18n/StringManager.ts` | Singleton localized string accessor; per-screen getters |
+| **Pure model** | **no Scenery imports, fully unit-tested** |
+| `src/common/model/Projection3D.ts` | Orthographic yaw/pitch camera + depth sorting |
+| `src/common/model/Lattice2D.ts` | 2D lattice generation, Bravais classification, Wigner–Seitz |
+| `src/common/model/CubicCell.ts` | Cubic cell contents, sharing fractions, APF, theoretical density |
+| `src/common/model/ReferenceElements.ts` | Typed access to `elements.json` |
+| `src/common/model/ClosePacking.ts` | Layer stacking, Jagodzinski symbols, c/a dependence |
+| `src/common/model/MillerIndices.ts` | Exact rational intercept → index pipeline, families, planar density |
+| `src/common/model/Affine2D.ts` | Flat 2D affine transforms for the tiling generators |
+| `src/common/model/PenroseTiling.ts` | Robinson-triangle inflation + derived vertex atlas |
+| `src/common/model/EinsteinTiling.ts` | Hat metatile substitution (ported from hatviz), spectre outline |
+| `src/common/model/DiffractionPattern.ts` | Direct-sum DFT, peak finding, symmetry measurement |
+| **Shared view** | |
+| `src/common/view/Projected3DNode.ts` | Base class for the pseudo-3D screens: camera, drag-to-orbit, `rebuild()` |
+| `src/common/view/AtomNode.ts` | Shaded sphere + the sharing-fraction wedge |
+| `src/common/view/ControlFactory.ts` | Themed sliders / check boxes / combo boxes / buttons |
+| `src/common/view/DerivedQuantitiesPanel.ts` | The live label/value readout every screen carries |
+| `src/common/CrystalLatticePanel.ts` | Pre-themed `Panel` wrapper |
+| `src/common/CrystalLatticeButtonOptions.ts` | Flat button-appearance bundles + combo-box options |
+| **Screens** | each has `model/`, `view/`, a `*Screen.ts`, a summary and a keyboard-help node |
+| `src/lattices-2d/` | 2D Lattices |
+| `src/cubic-systems/` | Cubic Systems |
+| `src/close-packing/` | Close-Packing |
+| `src/miller-indices/` | Miller Indices |
+| `src/aperiodic-order/` | Aperiodic Order |
 
-## Common components
+## Pitfalls
 
-### CrystalLatticePanel
+### `rebuild()` runs before subclass fields exist
 
-Every control panel and info box in the sim should use `CrystalLatticePanel` so that
-default/projector color switching is automatic:
+`Projected3DNode` calls `rebuild()` from its own constructor, so every subclass guards the top with
+`if (this.model === undefined) return;`. Removing that guard crashes on construction.
 
-```typescript
-import { CrystalLatticePanel } from "../../common/CrystalLatticePanel.js";
-const panel = new CrystalLatticePanel(content);              // uses CrystalLatticeColors defaults
-const panel = new CrystalLatticePanel(content, { xMargin: 20 }); // override any PanelOption
-```
+### Position projected nodes with `x`/`y`, never `centerX`/`centerY`
 
-### TimeModel
+The projection already centres its content on the node's local origin. A bounds-based `centerX` is
+computed once, at a moment when the content may be empty, and then drifts every time a rebuild
+changes the extent.
 
-For simulations with animation, compose `TimeModel` into your screen model:
+### Miller indices are exact rationals, not floats
 
-```typescript
-import { TimeModel } from "../../common/TimeModel.js";
+`Rational` exists so `(200)` never rounds into `(100)`. Do not "simplify" the pipeline to floats.
 
-export class MyModel implements TModel {
-  public readonly timer = new TimeModel();   // starts paused; pass true to auto-play
+### The atomic radius slider is deliberately unclamped
 
-  public step(dt: number): void {
-    this.timer.step(dt);
-    // use this.timer.timeProperty.value for physics
-  }
-  public reset(): void { this.timer.reset(); /* … */ }
-}
-```
+`packingFactor` is computed from the *current* radius and will exceed 1. That is the point — a
+student drags into the unphysical regime and the APF follows them there. `spheresOverlap` flags it.
 
-Wire the view to `TimeControlNode` from `scenerystack/scenery-phet` binding on
-`model.timer.isPlayingProperty`.
+### Diffraction: exclude the forward peak, trim to a disc
 
-### CrystalLatticeButtonOptions
+I(0) = N² swamps the Bragg peaks; `FORWARD_PEAK_EXCLUSION` keeps it out of the normalization and the
+peak search. And a patch's *outline* imprints on its transform, so `circularSubset` runs first.
+`measureSymmetryOrder`'s tolerance is tied to the k-grid step — loosening it lets a spurious 11-fold
+match beat the genuine 10-fold one.
 
-SceneryStack's push/round buttons default to a 3-D/beveled look; every button in the sim
-should be flat instead. Spread these into the relevant options object:
+### The hat port is load-bearing and non-obvious
 
-```typescript
-import { FLAT_RESET_ALL_BUTTON_OPTIONS, FLAT_RECTANGULAR_BUTTON_OPTIONS } from "../../common/CrystalLatticeButtonOptions.js";
-
-const resetAllButton = new ResetAllButton({ ...FLAT_RESET_ALL_BUTTON_OPTIONS, listener: () => {...} });
-const exampleButton = new RectangularPushButton({ ...FLAT_RECTANGULAR_BUTTON_OPTIONS, content, listener });
-```
-
-`FLAT_PLAY_PAUSE_STEP_BUTTON_OPTIONS` spreads into `TimeControlNode`'s `playPauseStepButtonOptions`;
-`TIME_CONTROL_SPEED_RADIO_OPTIONS` fixes `TimeControlNode`'s speed-radio label color, which
-otherwise defaults to black text on the sim's dark default-mode panels. `CRYSTAL_LATTICE_COMBO_BOX_OPTIONS`
-themes a `ComboBox`'s button/list chrome to the light control surface below; pair item labels
-with `LIGHT_SURFACE_TEXT_FILL` (not `CrystalLatticeColors.textColorProperty`, which is for panel-fill text).
-
-`CrystalLatticeColors.ts` backs this with a "light control surfaces" section —
-`controlSurfaceColorProperty`, `controlSurfaceDisabledColorProperty`,
-`controlSurfaceTextColorProperty` — identical white/dark-text values in both default and
-projector profiles, so any component that must stay light regardless of theme (combo boxes,
-flat buttons, editable fields) keeps readable contrast automatically.
+`EinsteinTiling.ts` carries specific vertex coordinates and a 29-entry rule table from Kaplan's
+`hatviz` (BSD 3-Clause — see `CREDITS.md`). None of it can be re-derived by inspection. The tests
+guard it with two invariants that break loudly: every hat in a patch has equal area, and the
+unreflected:reflected ratio approaches φ⁴.
 
 ## Accessibility
 
-This template is the **canonical accessibility reference** for OpenPhysics sims. It ships with
-the three required layers wired up: PDOM names, a `Lattices2DScreenSummaryContent`, and an explicit
-`pdomOrder` + `Lattices2DKeyboardHelpContent`. A11y strings live under the `a11y` key in each locale
-JSON, exposed via `StringManager.getLattices2DA11yStrings()`. When building a real sim, make
-`currentDetailsContent` a live `DerivedProperty` over model state and add `accessibleName`s to
-every interactive node. Full convention and checklist: [Baton/ACCESSIBILITY.md](https://github.com/OpenPhysics/Baton/blob/main/ACCESSIBILITY.md).
+Every screen ships all three layers: a `*ScreenSummaryContent` with a **live** `currentDetailsContent`
+derived from model Properties, an `accessibleName` on every interactive node, and an explicit
+`pdomOrder` with Reset All last. The `ControlFactory` helpers take `accessibleName` as a **required**
+argument, so a missing one is a compile error rather than a silent gap. Draggable plain Nodes also
+need `tagName: "div"` and `focusable: true`.
+
+A11y strings live under the `a11y` key per screen in each locale JSON, reached through
+`StringManager.get{Screen}A11yStrings()`. Full convention: [Baton/ACCESSIBILITY.md](https://github.com/OpenPhysics/Baton/blob/main/ACCESSIBILITY.md).
 
 ## Compliance carve-outs
 
-A clean fork of this template rarely needs compliance carve-outs — root `CrystalLatticeConstants.ts`,
-`*Colors.ts`, `*Namespace.ts`, standard screen layout, and full a11y wiring pass Baton's
-compliance check out of the box. Document carve-outs in the forked sim's `CLAUDE.md` only when
-you introduce a deliberate deviation (nested constants, hardcoded interaction fills, etc.).
+- `src/common/model/` holds pure geometry modules rather than `*Model.ts` screen models. This is a
+  deliberate split from the fleet's usual one-model-per-screen shape: the pure layer is what makes
+  the physics testable without a DOM, and each screen still has its own Property-holding model.
+- `scripts/rename-sim.ts` and `scripts/scaffold-screens.ts` are inherited from the template and no
+  longer apply to this repo. They stay in the tree so template updates merge cleanly.
 
 ## Testing
 
-Fleet-standard Vitest layout (keep when forking):
-
 | Path | Purpose |
 |---|---|
-| `vitest.config.ts` | `happy-dom` environment; `setupFiles: ["./tests/setup.ts"]`; `execArgv: ["--expose-gc"]` |
-| `tests/setup.ts` | Canvas / AudioContext mocks + `init({ name: "…" })` before SceneryStack imports |
-| `tests/TimeModel.test.ts` | Sample model unit tests — replace with real physics tests |
-| `tests/memory-leak.test.ts` | WeakRef + `forceGC` dispose regression (fleet pattern) |
+| `tests/Projection3D.test.ts` | Camera projection and depth ordering |
+| `tests/Lattice2D.test.ts` | Bravais classification, coordination, Wigner–Seitz areas |
+| `tests/CubicCell.test.ts` | Atom sharing, APF, theoretical density against textbook values |
+| `tests/ClosePacking.test.ts` | Stacking classification, HCP/FCC packing equality, c/a dependence |
+| `tests/MillerIndices.test.ts` | The four-stage pipeline, the (200) trap, planar density |
+| `tests/AperiodicTiling.test.ts` | Penrose ratios → φ, hat congruence and φ⁴ reflection ratio |
+| `tests/DiffractionPattern.test.ts` | 4-fold square, 6-fold hexagonal, 10-fold Penrose |
+| `tests/memory-leak.test.ts` | WeakRef + `forceGC` regression across all five screen models |
 | `tests/fuzz/fuzz.spec.ts` | Optional Playwright fuzz smoke via joist `?fuzz` |
-| `playwright.config.ts` | Chromium project + Vite webServer for fuzz |
 
-- Put unit tests only under root `tests/`, mirroring `src/` (never co-locate or use `__tests__/`).
-- Change the `name` passed to `init()` in `tests/setup.ts` to match `package.json` after `npm run rename`.
-- Run `npm test`. CI runs the suite when a `test` script is present.
-- Expand `memory-leak.test.ts` for any component that adds/removes nodes or links Properties at
-  runtime (see OpticsLab for a deep suite).
-- Optional: `npm run test:fuzz` / `test:fuzz:quick` (not part of default CI).
+Put unit tests only under root `tests/`, mirroring `src/` — never co-located, never `__tests__/`.
+Run `npm test`; CI runs the suite on every push.
+
+**When touching the pure model layer, add the assertion that would have caught the bug.** These
+modules produce numbers a reader cannot check by eye, so a wrong packing factor or a broken
+substitution rule is a silent pedagogical failure rather than a crash.
 
 ## Commands
 
@@ -134,71 +140,21 @@ npm run lint && npm run check && npm run build && npm test
 | `npm start` / `npm run dev` | Vite dev server |
 | `npm run build` | Type-check + production build |
 | `npm run build:single` | Single-file build mode |
-| `npm run check` | TypeScript (`tsc --noEmit` + scripts project) |
+| `npm run check` | TypeScript (`tsc --noEmit` + scripts and test projects) |
 | `npm run lint` / `npm run fix` | Biome check / auto-fix |
 | `npm test` | Vitest unit tests |
 | `npm run test:fuzz` | Playwright fuzz smoke |
-| `npm run test:fuzz:quick` | 10s fuzz |
-| `npm run icons` | Regenerate PWA icons |
-| `npm run rename` | Sim-level fork/rename (`--id`, `--name`) |
-| `npm run scaffold-screens` | Emit N screens (`--screens Intro,Lab`) |
+| `npm run icons` | Regenerate PWA icons from `public/icons/icon.svg` |
 
-## Customizing a new sim from this template
+## Known gaps
 
-### Recommended: Baton create-sim
+Two features from the original spec are specified and partly built but not shipped:
 
-```sh
-Baton/scripts/create-sim.sh --repo Friction --name "Friction" --screens Intro,Lab --shared-model --onboard
-```
-
-### Manual: GitHub template + rename + scaffold
-
-```sh
-npm install
-npm run rename -- --id friction --name "Friction"
-npm run scaffold-screens -- --screens Intro,Lab --shared-model
-# omit --screens for one screen named after the sim; omit --shared-model for independent models
-npm run fix     # required: both scripts reorder imports, which Biome then sorts
-npm run check
-```
-
-`rename` updates package id and metadata, display name, and every sim-level `Sim*`
-(Colors, Constants, Namespace, Panel, ButtonOptions, Preferences, query parameters).
-`scaffold-screens` owns screen folders (fleet naming: `src/intro/`, not `intro-screen/`).
-After both steps no `Sim*` identifier should remain — `grep -rn '\bSim[A-Z_]' src` to confirm.
-
-### Manual checklist (if not using the scripts)
-
-1. **Rename** — replace `crystal-lattice` / `Crystal Lattice` / `Sim` prefix in `init.ts`, `brand.ts`, `package.json` (name, description, keywords, repository.url), Colors/Constants/Namespace/Panel/ButtonOptions/Preferences
-2. **Screens** — run `scaffold-screens` or mirror `lattices2-d/` into kebab folders
-3. **Locale** — add `strings_XX.json`, register in `StringManager`, add locale to `init.ts` `availableLocales`
-4. **Icon** — edit `public/icons/icon.svg`, run `npm run icons`; match theme color in `index.html` / `vite.config.ts`
-5. **Colors** — edit `*Colors.ts` (`default` + `projector` profiles per property)
-
-## Multi-screen sims
-
-Full guide: [`doc/multi-screen.md`](doc/multi-screen.md)
-
-Summary:
-- Prefer `npm run scaffold-screens -- --screens Intro,Lab` (add `--shared-model` for a root model)
-- Or create a screen folder mirroring `src/lattices2-d/` for each screen (kebab names, no `-screen` suffix)
-- Add screen-name keys to all locale JSON files; nest `a11y` per screen
-- Expose new getters in `StringManager.getScreenNames()` / `get{Screen}A11yStrings()`
-- Shared state: `--shared-model` → `common/model/SharedModel.ts` composed per screen (rename to a domain type)
-- Add `src/common/CrystalLatticeScreenIcons.ts` with `create{Screen}Icon()` factories; wire `homeScreenIcon` + `navigationBarIcon` on each Screen
-- Register all screens in the `screens` array in `main.ts`
-
-## Using this template beyond a direct copy
-
-| Approach | When to use |
-|---|---|
-| **`Baton/scripts/create-sim.sh`** | Agents / fleet — create repo, rename, scaffold N screens |
-| **GitHub template** ("Use this template") | Humans starting a sim in the browser |
-| `npm run rename` + `scaffold-screens` | Same, after cloning the template |
-| **npm workspace / monorepo** | Managing a suite of sims with shared tooling |
-| **git subtree** for pulling updates | Keeping forks in sync with template improvements |
-
-See `doc/multi-screen.md` → "Using this template beyond a direct copy" for details.
+- **Screen 5's hand-placement mode.** The matching-rule machinery (`vertexAtlas`, `isVertexStarLegal`,
+  `isPlacementLegal`) is implemented and tested; the drag-and-drop UI on top of it is not.
+- **Screen 4's draggable intercept handles.** `MillerIndicesModel.setIntercept` and
+  `setDirectionFromVector` are implemented against the exact-rational pipeline; the screen currently
+  reaches them only through the worked-example presets.
 
 ## PWA
 

@@ -1,7 +1,33 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- A face-centred cubic cell in the sim's own three-quarter projection:
+       eight corner atoms, six face-centre atoms, and the cube's wireframe. -->
   <rect width="512" height="512" fill="#1a1a2e"/>
-  <circle cx="256" cy="256" r="180" fill="none" stroke="#4fc3f7" stroke-width="20"/>
-  <circle cx="256" cy="256" r="60" fill="#4fc3f7"/>
-  <ellipse cx="256" cy="256" rx="180" ry="60" fill="none" stroke="#4fc3f7" stroke-width="12" opacity="0.6" transform="rotate(30 256 256)"/>
-  <ellipse cx="256" cy="256" rx="180" ry="60" fill="none" stroke="#4fc3f7" stroke-width="12" opacity="0.6" transform="rotate(-30 256 256)"/>
+  <g stroke="#e0e0e0" stroke-width="7" fill="none" opacity="0.55">
+    <!-- Back face -->
+    <path d="M188 158 L376 158 L376 346 L188 346 Z"/>
+  </g>
+  <g stroke="#e0e0e0" stroke-width="7" fill="none" opacity="0.9">
+    <!-- Front face and the four connecting edges -->
+    <path d="M136 206 L324 206 L324 394 L136 394 Z"/>
+    <path d="M188 158 L136 206"/>
+    <path d="M376 158 L324 206"/>
+    <path d="M376 346 L324 394"/>
+    <path d="M188 346 L136 394"/>
+  </g>
+  <!-- Face-centre atoms -->
+  <g fill="#ffb74d">
+    <circle cx="256" cy="252" r="30"/>
+    <circle cx="230" cy="300" r="30"/>
+  </g>
+  <!-- Corner atoms -->
+  <g fill="#7fd4ff">
+    <circle cx="188" cy="158" r="26"/>
+    <circle cx="376" cy="158" r="26"/>
+    <circle cx="376" cy="346" r="26"/>
+    <circle cx="188" cy="346" r="26"/>
+    <circle cx="136" cy="206" r="30"/>
+    <circle cx="324" cy="206" r="30"/>
+    <circle cx="324" cy="394" r="30"/>
+    <circle cx="136" cy="394" r="30"/>
+  </g>
 </svg>

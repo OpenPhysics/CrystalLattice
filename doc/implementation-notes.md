@@ -1,135 +1,157 @@
-# Implementation Notes - Crystal Lattice
+# Implementation Notes — Crystal Lattice
 
-Developer-facing notes on the **SceneryStackTemplate** scaffold. **Replace and expand this file when
-forking** to describe your sim's real architecture (see Stern Gerlach or Light Propagation for
-target quality). Until then, this documents what the template provides out of the box.
+Developer-facing notes on this sim's architecture. The educator-facing companion is
+[model.md](./model.md).
 
-## Architecture Overview
+## Architecture overview
 
-SceneryStackTemplate is the fleet-canonical starting point for new SceneryStack sims (one or N screens).
-It demonstrates Model–View separation, color profiles, localization, reset behavior, accessibility
-reference wiring, and reusable common components — **without** domain physics.
+The sim's organising decision is that **all the physics and geometry lives in Scenery-free modules
+under `src/common/model/`**, and every screen is a thin layer of reactive Properties on top of them.
+Those modules are pure functions over plain data — no DOM, no `Node`, no `Property` — which is why the
+test suite can exercise the real crystallography without a browser.
 
 ```
 main.ts
-  └─ Lattices2DScreen             (Screen<Lattices2DModel, Lattices2DScreenView>)
-       ├─ Lattices2DModel          state + logic  (src/lattices2-d/model/)  ← stub: add physics here
-       └─ Lattices2DScreenView     visuals        (src/lattices2-d/view/)
-            ├─ Lattices2DScreenSummaryContent     (PDOM overview — reference a11y pattern)
-            └─ Lattices2DKeyboardHelpContent      (keyboard help dialog)
+  ├─ Lattices2DScreen        2D Bravais lattices, Wigner–Seitz, coordination
+  ├─ CubicSystemsScreen      SC / BCC / FCC, atom sharing, APF, density
+  ├─ ClosePackingScreen      ABAB vs ABCABC, c/a, stacking faults
+  ├─ MillerIndicesScreen     (hkl) and [uvw], the four-stage derivation
+  └─ AperiodicOrderScreen    Penrose, the hat, and their diffraction
 
-src/common/
-  ├─ CrystalLatticePanel.ts           pre-themed panel (uses CrystalLatticeColors)
-  ├─ CrystalLatticeButtonOptions.ts   flat button / combo-box option bundles
-  └─ TimeModel.ts          composable play/pause + elapsed time
+src/common/model/            pure — no Scenery imports, fully unit-tested
+  ├─ Projection3D.ts         orthographic yaw/pitch camera + depth sorting
+  ├─ Lattice2D.ts            2D lattice generation, Bravais classification, Wigner–Seitz
+  ├─ CubicCell.ts            cubic cell contents, sharing fractions, APF, density
+  ├─ ReferenceElements.ts    typed access to elements.json
+  ├─ ClosePacking.ts         layer stacking, Jagodzinski symbols, c/a dependence
+  ├─ MillerIndices.ts        exact rational intercept → index pipeline, families, planar density
+  ├─ Affine2D.ts             flat 2D affine transforms for the tiling generators
+  ├─ PenroseTiling.ts        Robinson-triangle inflation + derived vertex atlas
+  ├─ EinsteinTiling.ts       hat metatile substitution (ported), spectre outline
+  └─ DiffractionPattern.ts   direct-sum DFT, peak finding, symmetry measurement
 
-src/preferences/
-  ├─ CrystalLatticePreferencesModel   sim-specific pref state
-  ├─ CrystalLatticePreferencesNode    pref UI in Preferences → Simulation
-  └─ crystalLatticeQueryParameters    QueryStringMachine declarations
+src/common/view/             shared Scenery components
+  ├─ AtomNode.ts             shaded sphere + the sharing-fraction wedge
+  ├─ Projected3DNode.ts      base class: owns a camera, drag-to-orbit, rebuild hook
+  ├─ ControlFactory.ts       themed sliders / check boxes / combo boxes / buttons
+  └─ DerivedQuantitiesPanel.ts  the live label/value readout every screen carries
 ```
 
-Data flows Model → View through AXON `Property` objects (`.link()` / `.lazyLink()`). The view never
-integrates physics; the model never imports scenery.
+Data flows model → view through AXON Properties. The view never computes crystallography; the model
+never imports Scenery.
 
-## Forking checklist
+## Pseudo-3D in a 2D scene graph
 
-### Automated rename + scaffold (recommended)
+SceneryStack has no 3D renderer, so Screens 2, 3 and 4 project a `Vector3` model through
+`Projection3D` — an immutable orthographic camera holding a yaw, a pitch and a model→view scale.
 
-```sh
-npm run rename -- --id my-sim --name "My Simulation"
-npm run scaffold-screens -- --screens Intro,Lab   # or omit --screens for one screen
-npm run check
+Two consequences shape the view code:
+
+- **Occlusion comes from child order**, and child order depends on the camera. `Projected3DNode`
+  therefore *rebuilds* its children on every camera change rather than repositioning them. Cell
+  contents top out at a few hundred spheres, comfortably inside the budget for that.
+- **Sorting whole spheres back-to-front is exact** for non-intersecting spheres of equal size, which
+  is the hard-sphere case these screens model. Once the radius slider is driven past touching the
+  spheres interpenetrate and the sort is no longer exact — but that state is already flagged as
+  unphysical, so a slightly wrong occlusion there is the least of its problems.
+
+`CubicCellNode` splits the cube's twelve wireframe edges into two passes, behind and in front of the
+atoms, at the cube's centre depth. Without that, the cell reads as a box drawn *over* the spheres
+rather than one containing them.
+
+Subclasses guard the top of `rebuild()` with `if (this.model === undefined) return;` — the base class
+calls it once from its own constructor, before subclass fields are assigned.
+
+## Exact arithmetic for Miller indices
+
+`MillerIndices.ts` works in a small `Rational` type rather than floats. The intercepts → reciprocals →
+clear → reduce pipeline is arithmetic on exact fractions, so `(200)` stays `(200)` and never drifts
+into `(100)` through rounding. A dragged handle becomes a rational via a bounded-denominator search
+(`Rational.fromNumber`), which is also what gives the intercept handles their snap feel.
+
+The four stages are all exposed on `PlaneDerivation`, because the screen shows the work rather than
+just the answer.
+
+## Aperiodic tilings
+
+**Penrose** uses the Robinson-triangle substitution: each triangle is subdivided into smaller copies
+of the same two shapes, scaled by φ. Whole rhombi are recovered by pairing triangles that share a
+base edge, and the pairing is what makes the tile counts meaningful — the thick:thin ratio converging
+to φ is a direct consequence of the substitution matrix.
+
+The **matching rules** for hand placement are *derived*, not hard-coded. Undecorated Penrose rhombi
+tile periodically, so "do the shapes fit?" is not the rule worth enforcing; the vertex atlas is. That
+atlas is read off inflated tilings — every complete vertex of a large patch contributes its cyclic
+sequence of corner angles, and the observed set *is* the atlas. It is computed lazily and cached, and
+`tests/AperiodicTiling.test.ts` checks that every star sums to a full turn.
+
+**The hat** has no local matching rules at all. `EinsteinTiling.ts` is a TypeScript port of Craig
+Kaplan's `hatviz`: the hat outline on the kite grid, the H/T/P/F metatile geometry, the 29-rule patch
+assembly, and the supertile extraction that cuts the next level's metatiles out of that patch. See
+[CREDITS.md](../CREDITS.md) for the BSD 3-Clause notice.
+
+Two invariants make a broken port loud rather than silent, and both are asserted in the tests: every
+hat in a patch has the same area (they are congruent copies of one 13-gon), and the
+unreflected:reflected ratio approaches φ⁴, a number that falls out of the metatile system and nowhere
+else.
+
+## Diffraction
+
+`computeDiffraction` evaluates I(**k**) = |Σⱼ exp(i**k**·**r**ⱼ)|² directly on a k-space grid. This is
+not a slow substitute for an FFT — an FFT assumes uniformly sampled input, which a Penrose vertex set
+by construction is not, so the direct sum is the correct tool.
+
+Three details matter for the pattern to read correctly:
+
+- **The forward peak is excluded** from both the normalization and the peak search. Every scatterer is
+  in phase at **k** = 0, so I(0) = N² swamps everything else; normalizing against it would make the
+  pattern look empty. Real diffraction experiments use a beam stop for the same reason.
+- **The patch is trimmed to a disc** before transforming. A finite patch's *outline* shows up in its
+  transform, and an untrimmed decagonal patch would imprint its own shape on the pattern.
+- **The display is gamma-compressed** (`DISPLAY_GAMMA` in `DiffractionNode`). Bragg peaks are orders of
+  magnitude brighter than the background; displayed linearly, only a handful are visible.
+
+`measureSymmetryOrder` reports the largest n whose 2π/n rotation maps the peak set onto itself. Its
+tolerance is tied to the k-grid step — peaks sit on grid nodes, so about one and a half steps is the
+right allowance. Loosening it further lets a spurious 11-fold match slip past the genuine 10-fold one.
+
+Cost is O(points × resolution²). At the screen's 96 × 96 grid, a few hundred scatterers is tens of
+milliseconds; the inflation controls are capped (`MAX_INFLATION_STEPS`, `MAX_HAT_STEPS`) so the
+transform stays interactive, and the Inflate button disables at the cap rather than letting the frame
+rate quietly collapse.
+
+## Accessibility
+
+Every screen ships the three required layers:
+
+- a `*ScreenSummaryContent` with a **live** `currentDetailsContent` derived from model Properties, so
+  re-reading the summary reports the current state — including the answers the screen exists to
+  produce (the Bravais type, the packing fraction, the measured symmetry order);
+- an `accessibleName` on every interactive node, sourced from the `a11y` string group. The
+  `ControlFactory` helpers take it as a *required* argument, so the compiler catches an omission;
+- an explicit `pdomOrder` on a wrapper Node, with Reset All last.
+
+Draggable plain Nodes (the 2D vector handles, the rotatable cells) also carry `tagName: "div"` and
+`focusable: true`, without which they are unreachable by keyboard.
+
+## Deviations from the original spec
+
+- The spec sketched a `js/` tree with `*Model.ts` files under `common/model/`. This uses the fleet's
+  `src/` layout instead, and reserves `common/model/` for the *pure* modules while each screen's
+  Property-holding model lives in its own folder (`src/cubic-systems/model/CubicSystemsModel.ts`).
+  Keeping the two apart is what lets the pure layer stay DOM-free.
+- Screen 3's custom-sequence entry offers a short list of instructive stacking faults rather than a
+  free-text field: a six-character answer typed on a touch screen is a poor interaction, and the
+  presets cover the cases worth seeing.
+- Screen 5's hand-placement mode is not shipped. The matching-rule machinery it needs
+  (`isPlacementLegal`, `vertexAtlas`) is implemented and tested, but the drag-and-drop UI on top of it
+  is not; `Inflate` and the mode selector are the paths into the tilings for now.
+- Screen 4's intercept handles are not draggable in the play area. `MillerIndicesModel.setIntercept`
+  and `setDirectionFromVector` are implemented against the exact-rational pipeline, but the screen
+  currently drives them through the worked-example presets rather than through handles on the axes.
+
+## Commands
+
+```bash
+npm run lint && npm run check && npm run build && npm test
 ```
-
-Or from the workspace: `Baton/scripts/create-sim.sh --repo MySim --name "My Simulation"`.
-
-`scripts/rename-sim.ts` updates sim-level identifiers (package id, Colors, Preferences).
-`scripts/scaffold-screens.ts` emits fleet-named screen folders and wires main/strings/icons.
-
-### Manual steps (after rename/scaffold or if skipping the scripts)
-
-1. **`doc/model.md`** — educator physics (equations, ranges, simplifications).
-2. **`doc/implementation-notes.md`** — this file, rewritten for your architecture.
-3. **Screen model(s)** — real Properties, `step(dt)`, `reset()`; compose `TimeModel` if animated.
-4. **Screen view(s)** — play area + controls; wire `ResetAllButton` to `model.reset()`.
-5. **`*Colors.ts`** — sim palette (default + projector profiles).
-6. **Locale JSON** — title, strings, `a11y` keys; register locales in `init.ts`.
-7. **`public/icons/icon.svg`** → `npm run icons`; align theme color in `index.html` / vite config.
-8. **`tests/setup.ts`** — `init({ name: … })` must match `package.json` name after rename.
-9. **`CLAUDE.md`** — sim-specific file map and pitfalls for AI assistants.
-
-## Common components (keep when forking)
-
-### CrystalLatticePanel
-
-Every control panel should use `CrystalLatticePanel` so projector-mode switching is automatic:
-
-```typescript
-import { CrystalLatticePanel } from "../../common/CrystalLatticePanel.js";
-const panel = new CrystalLatticePanel(content);
-const panelWide = new CrystalLatticePanel(content, { xMargin: 20 });
-```
-
-### TimeModel
-
-Compose into your screen model for animation (do not subclass `TimeModel`):
-
-```typescript
-export class MyModel implements TModel {
-  public readonly timer = new TimeModel();  // pass true to auto-play on startup
-
-  public step(dt: number): void {
-    this.timer.step(dt);
-    // physics uses this.timer.timeProperty.value
-  }
-  public reset(): void { this.timer.reset(); /* restore initial state */ }
-}
-```
-
-Wire `TimeControlNode` to `model.timer.isPlayingProperty` in the view.
-
-### CrystalLatticeButtonOptions
-
-Spread flat button options into every push/round button and `TimeControlNode` (see `CLAUDE.md`).
-Use `CRYSTAL_LATTICE_COMBO_BOX_OPTIONS` + `LIGHT_SURFACE_TEXT_FILL` for light control surfaces on dark panels.
-
-## Accessibility (reference implementation)
-
-The template is the **canonical OpenPhysics a11y reference**:
-
-- PDOM `accessibleName` on interactive nodes (prefer live `StringProperty`s).
-- `Lattices2DScreenSummaryContent` with a live `currentDetailsContent` `DerivedProperty` over model state.
-- Explicit `pdomOrder` + `Lattices2DKeyboardHelpContent`.
-- Strings under `a11y` in locale JSON → `StringManager.getLattices2DA11yStrings()`.
-
-Full checklist: [Baton/ACCESSIBILITY.md](https://github.com/OpenPhysics/Baton/blob/main/ACCESSIBILITY.md).
-
-## Testing (fleet layout — keep when forking)
-
-| Path | Purpose |
-|---|---|
-| `vitest.config.ts` | `happy-dom`; `setupFiles: ["./tests/setup.ts"]`; `execArgv: ["--expose-gc"]` |
-| `tests/setup.ts` | Canvas/AudioContext mocks + `init()` before SceneryStack imports |
-| `tests/TimeModel.test.ts` | **Replace** with real model/physics tests mirroring `src/` |
-| `tests/memory-leak.test.ts` | WeakRef + `forceGC` dispose regression |
-| `tests/fuzz/fuzz.spec.ts` | Optional Playwright smoke via `?fuzz` |
-
-Run `npm test`. Expand `memory-leak.test.ts` when adding runtime-created nodes or Property links.
-
-## Multi-screen simulations
-
-Default is single-screen. To add screens, see **`doc/multi-screen.md`**: per-screen folders mirroring
-`src/lattices2-d/`, `StringManager` screen-name getters, optional shared root model, a shared
-`src/common/CrystalLatticeScreenIcons.ts` module (`create{Screen}Icon()` factories wired as
-`homeScreenIcon` / `navigationBarIcon`), and register all screens in `main.ts`.
-
-## PWA
-
-After `npm run build`, the sim is installable offline via Workbox (`dist/manifest.webmanifest`).
-
-## Known template stubs (remove when forking)
-
-- `Lattices2DModel.step()` / `reset()` — empty placeholders until you add physics.
-- Placeholder play-area content in `Lattices2DScreenView` — replace with real UI.
-- `tests/TimeModel.test.ts` — sample only; add tests for your model under `tests/`.
