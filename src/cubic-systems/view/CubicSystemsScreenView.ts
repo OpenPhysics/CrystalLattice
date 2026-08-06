@@ -1,87 +1,248 @@
 /**
  * CubicSystemsScreenView.ts
  *
- * The top-level view for the simulation screen.
+ * The Cubic Systems screen. The play area holds a rotatable cubic unit cell;
+ * the right-hand column selects the structure and sets a and r; the quantity
+ * panel shows the counting and packing results the screen exists to produce.
  *
- * All visual nodes are added here. Follow these conventions:
- *   - Use this.layoutBounds for positioning (never magic pixel values)
- *   - Keep a ResetAllButton that calls model.reset() and this.reset()
- *   - Override step(dt) for frame-by-frame animation
- *
- * ── Adding content ────────────────────────────────────────────────────────────
- * 1. Create Node subclasses in separate files (e.g. CrystalLatticeControlPanel.ts)
- * 2. Instantiate them here and call this.addChild(...)
- * 3. Link them to model properties:
- *      model.isRunningProperty.link( isRunning => { ... } );
- *
- * ── Layout bounds ─────────────────────────────────────────────────────────────
- * SceneryStack uses a virtual 1024×618 coordinate space by default.
- * this.layoutBounds gives you the full rectangle; use it for alignment:
- *   center, minX, maxX, minY, maxY, width, height
+ * The touching-condition row is written as the algebra (a = 2r, a = 4r/√3,
+ * a = 2√2 r) rather than as a number, so the relation a student would derive on
+ * paper is on screen next to the picture it comes from.
  */
 
+import { DerivedProperty, Property, StringProperty } from "scenerystack/axon";
 import { type EmptySelfOptions, optionize } from "scenerystack/phet-core";
-import { Node, Rectangle, Text } from "scenerystack/scenery";
+import { Node, Rectangle, VBox } from "scenerystack/scenery";
 import { ResetAllButton } from "scenerystack/scenery-phet";
 import { ScreenView, type ScreenViewOptions } from "scenerystack/sim";
 import CrystalLatticeColors from "../../CrystalLatticeColors.js";
-import { SCREEN_VIEW_MARGIN } from "../../CrystalLatticeConstants.js";
+import {
+  CONTROL_COLUMN_SPACING,
+  CONTROL_PANEL_WIDTH,
+  PANEL_ROW_SPACING,
+  SCREEN_VIEW_MARGIN,
+} from "../../CrystalLatticeConstants.js";
 import { FLAT_RESET_ALL_BUTTON_OPTIONS } from "../../common/CrystalLatticeButtonOptions.js";
-import type { CubicSystemsModel } from "../model/CubicSystemsModel.js";
+import { CrystalLatticePanel } from "../../common/CrystalLatticePanel.js";
+import { CubicStructure } from "../../common/model/CubicCell.js";
+import type { ReferenceElement } from "../../common/model/ReferenceElements.js";
+import {
+  controlColumn,
+  createCheckbox,
+  createComboBox,
+  createHeading,
+  createSlider,
+  createTextButton,
+} from "../../common/view/ControlFactory.js";
+import { DerivedQuantitiesPanel } from "../../common/view/DerivedQuantitiesPanel.js";
+import { StringManager } from "../../i18n/StringManager.js";
+import { ATOM_RADIUS_RANGE, CELL_EDGE_RANGE, type CubicSystemsModel } from "../model/CubicSystemsModel.js";
+import { CubicCellNode } from "./CubicCellNode.js";
 import { CubicSystemsScreenSummaryContent } from "./CubicSystemsScreenSummaryContent.js";
+import { touchingRelationStringProperty } from "./cubicStructureStrings.js";
 
 export type CubicSystemsScreenViewOptions = ScreenViewOptions;
 
 export class CubicSystemsScreenView extends ScreenView {
+  private readonly cellNode: CubicCellNode;
+
   public constructor(model: CubicSystemsModel, providedOptions?: CubicSystemsScreenViewOptions) {
-    // ── Accessibility: screen summary ───────────────────────────────────────────
-    // The screen summary is the first thing a screen-reader user encounters. It
-    // is registered here, in the ScreenView's super() options, so every sim wires
-    // it the same way. See CubicSystemsScreenSummaryContent for the four content regions.
     const options = optionize<CubicSystemsScreenViewOptions, EmptySelfOptions, ScreenViewOptions>()(
-      {
-        screenSummaryContent: new CubicSystemsScreenSummaryContent(model),
-      },
+      { screenSummaryContent: new CubicSystemsScreenSummaryContent(model) },
       providedOptions,
     );
     super(options);
 
-    // ── Background ────────────────────────────────────────────────────────────
-    // A full-screen rectangle that follows the active color profile.
-    // Replace or remove once you add real content.
-    const backgroundRect = new Rectangle(0, 0, this.layoutBounds.width, this.layoutBounds.height, {
-      fill: CrystalLatticeColors.backgroundColorProperty,
+    const strings = StringManager.getInstance();
+    const screenStrings = strings.getCubicSystemsStrings();
+    const commonStrings = strings.getCommonStrings();
+    const a11y = strings.getCubicSystemsA11yStrings();
+
+    this.addChild(
+      new Rectangle(0, 0, this.layoutBounds.width, this.layoutBounds.height, {
+        fill: CrystalLatticeColors.backgroundColorProperty,
+      }),
+    );
+
+    // ── Play area ─────────────────────────────────────────────────────────────
+    const playAreaSize = this.layoutBounds.height - 2 * SCREEN_VIEW_MARGIN;
+    this.cellNode = new CubicCellNode(model, playAreaSize, {
+      // The projection already centres the cell on this node's local origin, so
+      // translate rather than centre: a bounds-based centre would drift every
+      // time a rebuild changed the cell's extent.
+      x: SCREEN_VIEW_MARGIN + playAreaSize / 2,
+      y: SCREEN_VIEW_MARGIN + playAreaSize / 2,
+      cursor: "pointer",
+      accessibleName: a11y.controls.cellRotationStringProperty,
+      tagName: "div",
+      focusable: true,
     });
-    this.addChild(backgroundRect);
+    this.addChild(this.cellNode);
 
-    // ── Placeholder label ─────────────────────────────────────────────────────
-    // Replace this with your actual simulation content.
-    const placeholderText = new Text("CubicSystems", {
-      font: "bold 36px sans-serif",
-      fill: CrystalLatticeColors.textColorProperty,
-      center: this.layoutBounds.center,
+    // ── Controls ──────────────────────────────────────────────────────────────
+    const comboBoxParent = new Node();
+
+    const structureComboBox = createComboBox(
+      model.structureProperty,
+      [
+        { value: CubicStructure.SIMPLE_CUBIC, label: screenStrings.structures.simpleCubicStringProperty },
+        { value: CubicStructure.BODY_CENTERED, label: screenStrings.structures.bodyCenteredStringProperty },
+        { value: CubicStructure.FACE_CENTERED, label: screenStrings.structures.faceCenteredStringProperty },
+      ],
+      comboBoxParent,
+      a11y.controls.structureSelectorStringProperty,
+    );
+
+    const edgeSlider = createSlider(
+      screenStrings.cellEdgeStringProperty,
+      model.edgeLengthProperty,
+      CELL_EDGE_RANGE,
+      a11y.controls.cellEdgeSliderStringProperty,
+      { decimalPlaces: 3, units: "nm", delta: 0.005 },
+    );
+    const radiusSlider = createSlider(
+      screenStrings.atomicRadiusStringProperty,
+      model.atomRadiusProperty,
+      ATOM_RADIUS_RANGE,
+      a11y.controls.atomicRadiusSliderStringProperty,
+      { decimalPlaces: 3, units: "nm", delta: 0.002 },
+    );
+    const snapButton = createTextButton(
+      screenStrings.snapToTouchingStringProperty,
+      () => model.snapRadiusToTouching(),
+      a11y.controls.snapToTouchingStringProperty,
+    );
+
+    const clipCheckbox = createCheckbox(
+      screenStrings.clipPlaneStringProperty,
+      model.clipFrontProperty,
+      a11y.controls.clipPlaneStringProperty,
+    );
+    const sharingCheckbox = createCheckbox(
+      screenStrings.showSharingStringProperty,
+      model.showSharingProperty,
+      a11y.controls.showSharingStringProperty,
+    );
+
+    // Selecting an element adopts its structure and lattice constant, so the
+    // computed density can be read straight against the measured one.
+    const elementProperty = new Property<ReferenceElement | null>(null);
+    elementProperty.lazyLink((element) => {
+      if (element !== null) {
+        model.loadElement(element);
+      }
     });
-    this.addChild(placeholderText);
+    model.selectedElementProperty.link((element) => {
+      elementProperty.value = element;
+    });
 
-    // ── Accessibility: per-control names ────────────────────────────────────────
-    // EVERY interactive node must carry an `accessibleName` (and an
-    // `accessibleHelpText` where useful), sourced from the StringManager `a11y`
-    // string group — never a hard-coded English literal. Sun/scenery-phet controls
-    // (NumberControl, Checkbox, ComboBox, AquaRadioButtonGroup, …) accept it as an
-    // option; a draggable plain Node needs `tagName: "div", focusable: true` too.
-    // Example (uncomment and adapt when you add a real control):
-    //
-    //   const a11y = StringManager.getInstance().getCubicSystemsA11yStrings();
-    //   const exampleButton = new RectangularPushButton({
-    //     ...FLAT_RECTANGULAR_BUTTON_OPTIONS, // flat appearance, not SceneryStack's default 3-D look
-    //     content: someIcon,
-    //     listener: () => model.doSomething(),
-    //     accessibleName: a11y.controls.exampleControlStringProperty,
-    //   });
-    //   this.addChild(exampleButton);
+    const elementComboBox = createComboBox(
+      elementProperty,
+      [
+        // A "none" entry so the screen can open with no element chosen — the
+        // density comparison is an optional mode, not the screen's default.
+        { value: null as ReferenceElement | null, label: commonStrings.noneStringProperty },
+        ...model.referenceElements.map((element) => ({
+          value: element as ReferenceElement | null,
+          // Chemical symbols and element names are not translated, so a plain
+          // StringProperty is right here rather than a locale-driven one.
+          label: new StringProperty(`${element.symbol} — ${element.name}`),
+        })),
+      ],
+      comboBoxParent,
+      a11y.controls.elementSelectorStringProperty,
+    );
 
-    // ── Reset All button ──────────────────────────────────────────────────────
-    // Always position at bottom-right (PhET convention).
+    const controlsPanel = new CrystalLatticePanel(
+      controlColumn([
+        createHeading(commonStrings.structureStringProperty),
+        structureComboBox,
+        edgeSlider,
+        radiusSlider,
+        snapButton,
+        clipCheckbox,
+        sharingCheckbox,
+      ]),
+    );
+
+    const elementPanel = new CrystalLatticePanel(
+      controlColumn([createHeading(screenStrings.identifyElementStringProperty), elementComboBox]),
+    );
+
+    // ── Live quantities ───────────────────────────────────────────────────────
+    const quantitiesPanel = new DerivedQuantitiesPanel(
+      [
+        {
+          label: commonStrings.atomsPerCellStringProperty,
+          value: new DerivedProperty([model.atomsPerCellProperty], (count) => `${count}`),
+        },
+        {
+          label: commonStrings.coordinationNumberStringProperty,
+          value: new DerivedProperty([model.coordinationNumberProperty], (count) => `${count}`),
+        },
+        {
+          label: screenStrings.touchingRelationStringProperty,
+          value: touchingRelationStringProperty(model.structureProperty),
+        },
+        {
+          label: screenStrings.touchingRadiusStringProperty,
+          value: new DerivedProperty([model.touchingRadiusProperty], (radius) => `${radius.toFixed(4)} nm`),
+        },
+        {
+          label: screenStrings.packingFactorStringProperty,
+          value: new DerivedProperty([model.packingFactorProperty], (apf) => apf.toFixed(3)),
+          // Turning the APF red the moment the spheres overlap is the cheapest
+          // way to say "this number no longer means what you think".
+          valueFill: new DerivedProperty(
+            [
+              model.overlappingProperty,
+              CrystalLatticeColors.warningColorProperty,
+              CrystalLatticeColors.accentColorProperty,
+            ],
+            (overlapping, warning, accent) => (overlapping ? warning : accent),
+          ),
+        },
+        {
+          label: screenStrings.computedDensityStringProperty,
+          value: new DerivedProperty(
+            [model.computedDensityProperty, commonStrings.noneStringProperty],
+            (density, none) => (density === null ? none : `${density.toFixed(2)} g/cm³`),
+          ),
+        },
+        {
+          label: screenStrings.measuredDensityStringProperty,
+          value: new DerivedProperty(
+            [model.selectedElementProperty, commonStrings.noneStringProperty],
+            (element, none) => (element === null ? none : `${element.measuredDensity.toFixed(2)} g/cm³`),
+          ),
+        },
+        {
+          label: screenStrings.elementStringProperty,
+          value: new DerivedProperty(
+            [model.identifiedElementProperty, screenStrings.noMatchStringProperty],
+            (element, noMatch) => element?.symbol ?? noMatch,
+          ),
+          valueFill: CrystalLatticeColors.successColorProperty,
+        },
+      ],
+      {
+        titleProperty: commonStrings.quantitiesStringProperty,
+        left: SCREEN_VIEW_MARGIN,
+        bottom: this.layoutBounds.maxY - SCREEN_VIEW_MARGIN,
+      },
+    );
+    this.addChild(quantitiesPanel);
+
+    const controlColumnNode = new VBox({
+      align: "left",
+      spacing: CONTROL_COLUMN_SPACING,
+      children: [controlsPanel, elementPanel],
+      right: this.layoutBounds.maxX - SCREEN_VIEW_MARGIN,
+      top: SCREEN_VIEW_MARGIN,
+      maxWidth: CONTROL_PANEL_WIDTH + 2 * PANEL_ROW_SPACING,
+    });
+    this.addChild(controlColumnNode);
+
     const resetAllButton = new ResetAllButton({
       ...FLAT_RESET_ALL_BUTTON_OPTIONS,
       listener: () => {
@@ -92,36 +253,27 @@ export class CubicSystemsScreenView extends ScreenView {
       bottom: this.layoutBounds.maxY - SCREEN_VIEW_MARGIN,
     });
     this.addChild(resetAllButton);
+    this.addChild(comboBoxParent);
 
-    // ── Accessibility: keyboard / reading traversal order ───────────────────────
-    // Make the parallel DOM (Tab order and screen-reader reading order)
-    // deterministic and independent of child z-order. ScreenView throws if you
-    // set pdomOrder on itself, so add a lightweight wrapper Node that "borrows"
-    // the interactive nodes in the order a user should reach them — Reset All
-    // last. Non-interactive decoration (background, placeholder) is omitted.
     this.addChild(
       new Node({
         pdomOrder: [
-          // TODO: add the sim's interactive nodes here, in traversal order
+          this.cellNode,
+          structureComboBox,
+          edgeSlider,
+          radiusSlider,
+          snapButton,
+          clipCheckbox,
+          sharingCheckbox,
+          elementComboBox,
           resetAllButton,
         ],
       }),
     );
   }
 
-  /**
-   * Resets view-side state (animations, panel visibility, etc.).
-   * Called by the Reset All button listener.
-   */
+  /** Returns the camera to its default three-quarter view. */
   public reset(): void {
-    // TODO: reset any view-side state here
-  }
-
-  /**
-   * Steps the view forward by dt seconds for animation.
-   * @param _dt - elapsed time in seconds
-   */
-  public override step(_dt: number): void {
-    // TODO: implement animation updates here
+    this.cellNode.resetCamera();
   }
 }
