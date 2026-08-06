@@ -192,13 +192,18 @@ function isLocalMaximum(result: DiffractionResult, column: number, row: number, 
  * any periodic lattice, which is the whole point of the screen.
  *
  * @param peaks - peaks to test, typically the brightest few dozen
- * @param toleranceFraction - positional tolerance as a fraction of the peak radius
+ * @param kRange - half-width of the sampled k window the peaks came from
+ * @param toleranceFraction - positional tolerance as a fraction of `kRange`.
+ *   Peaks sit on grid nodes, so the floor is one grid step — about 0.021 of the
+ *   range at the screen's 96 × 96 resolution. The default allows roughly one and
+ *   a half steps: loose enough for quantization, tight enough that a spurious
+ *   11-fold match cannot slip past a genuine 10-fold one.
  * @param maxOrder - highest symmetry order to test
  */
 export function measureSymmetryOrder(
   peaks: readonly DiffractionPeak[],
   kRange: number,
-  toleranceFraction = 0.06,
+  toleranceFraction = 0.03,
   maxOrder = 12,
 ): number {
   // The forward peak sits at the rotation centre and is invariant under every

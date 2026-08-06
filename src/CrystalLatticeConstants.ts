@@ -129,8 +129,9 @@ export const MIN_INFLATION_STEPS = 1;
 /** Most Penrose inflation steps, capped to keep the DFT in its cheap regime. */
 export const MAX_INFLATION_STEPS = 6;
 
-/** Most hat substitution steps; each multiplies the hat count by roughly seven. */
-export const MAX_HAT_STEPS = 3;
+/** Most hat substitution steps. Each multiplies the hat count by roughly seven,
+ *  so a third step would push the scatterer count past the direct sum's budget. */
+export const MAX_HAT_STEPS = 2;
 
 /** Resolution of the k-space grid for the live diffraction display. */
 export const DIFFRACTION_RESOLUTION = 96;
@@ -140,7 +141,7 @@ export const DIFFRACTION_PERIODS = 1.5;
 
 /** Fraction of a tiling's radius kept when trimming it to a disc before the DFT,
  *  so the patch outline does not imprint itself on the pattern. */
-export const DIFFRACTION_PATCH_FRACTION = 0.5;
+export const DIFFRACTION_PATCH_FRACTION = 0.7;
 
 /** Normalized intensity above which a diffraction maximum counts as a Bragg peak. */
 export const DIFFRACTION_PEAK_THRESHOLD = 0.15;
