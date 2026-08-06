@@ -1,38 +1,35 @@
 /**
  * ClosePackingScreenSummaryContent.ts
  *
- * The accessible screen summary read by screen readers (SceneryStack's
- * Interactive Description). It appears at the top of the parallel DOM and gives
- * a non-visual user a way to orient themselves and to re-read the simulation's
- * current state at any time.
- *
- * A summary has four regions (all optional, but provide at least the first
- * three in every sim for consistency across OpenPhysics):
- *   - playAreaContent       — what the play area contains
- *   - controlAreaContent    — what the controls do
- *   - currentDetailsContent — a LIVE paragraph describing current state
- *   - interactionHintContent — a short hint on how to get started
- *
- * ── Making "current details" live ─────────────────────────────────────────────
- * The template has no model state, so currentDetails is a static string. In a
- * real sim, build a DerivedProperty over the relevant model Properties and pass
- * it as `currentDetailsContent` so the paragraph updates as the sim runs.
- * See LunarLander/src/.../LunarLanderScreenSummaryContent.ts for the pattern.
+ * The accessible screen summary for the Close-Packing screen. Its live
+ * current-details paragraph reads out the sequence, its classification and the
+ * packing fraction together, so the "different picture, same number" point is
+ * available without seeing the picture at all.
  */
+
+import { DerivedProperty, PatternStringProperty } from "scenerystack/axon";
 import { ScreenSummaryContent } from "scenerystack/sim";
 import { StringManager } from "../../i18n/StringManager.js";
 import type { ClosePackingModel } from "../model/ClosePackingModel.js";
+import { sequenceTextProperty, stackingTypeStringProperty } from "./stackingStrings.js";
 
 export class ClosePackingScreenSummaryContent extends ScreenSummaryContent {
-  // `model` is unused in the template but kept in the signature so real sims can
-  // derive a live currentDetailsContent from it without changing call sites.
-  public constructor(_model: ClosePackingModel) {
+  public constructor(model: ClosePackingModel) {
     const a11y = StringManager.getInstance().getClosePackingA11yStrings();
+
+    const currentDetails = new PatternStringProperty(a11y.currentDetailsStringProperty, {
+      sequence: sequenceTextProperty(model.sequenceProperty),
+      type: stackingTypeStringProperty(model.stackingTypeProperty),
+      layers: new DerivedProperty([model.sequenceProperty], (sequence) => `${sequence.length}`),
+      ratio: new DerivedProperty([model.cOverAProperty], (value) => value.toFixed(3)),
+      coordination: new DerivedProperty([model.coordinationNumberProperty], (value) => `${value}`),
+      packing: new DerivedProperty([model.packingFractionProperty], (value) => value.toFixed(4)),
+    });
 
     super({
       playAreaContent: a11y.screenSummary.playAreaStringProperty,
       controlAreaContent: a11y.screenSummary.controlAreaStringProperty,
-      currentDetailsContent: a11y.currentDetailsStringProperty,
+      currentDetailsContent: currentDetails,
       interactionHintContent: a11y.screenSummary.interactionHintStringProperty,
     });
   }
