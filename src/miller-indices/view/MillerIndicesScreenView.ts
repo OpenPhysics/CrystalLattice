@@ -234,6 +234,10 @@ export class MillerIndicesScreenView extends ScreenView {
       new Node({
         pdomOrder: [
           this.cellNode,
+          // The handles come straight after the cell they sit on: a keyboard
+          // user reaches "rotate the cell", then "move each intercept", before
+          // any panel control.
+          ...this.cellNode.getHandles(),
           modeRadio,
           ...planeButtons,
           ...directionButtons,

@@ -85,6 +85,7 @@
     "interceptB": "Intersección con b",
     "interceptC": "Intersección con c",
     "parallel": "∥ (en el infinito)",
+    "parallelSymbol": "∥",
     "derivation": "Cómo se obtienen los índices",
     "stepIntercepts": "1. Intersecciones",
     "stepReciprocals": "2. Recíprocos",

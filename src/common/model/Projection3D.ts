@@ -24,7 +24,7 @@
  * without a DOM; see tests/Projection3D.test.ts.
  */
 
-import { Matrix3, Vector2, type Vector3 } from "scenerystack/dot";
+import { Matrix3, Vector2, Vector3 } from "scenerystack/dot";
 
 /** A model-space point projected to the view plane, plus its camera depth. */
 export type ProjectedPoint = {
@@ -100,6 +100,26 @@ export class Projection3D {
   /** Camera depth of a model point; larger is nearer the viewer. */
   public depthOf(point: Vector3): number {
     return this.rotate(point).z;
+  }
+
+  /**
+   * The inverse of {@link project}: the model-space point that lands on a given
+   * view position at a given camera depth.
+   *
+   * A pointer drag in a flat view supplies only two numbers, so it can never
+   * determine all three model coordinates. The caller therefore names the third
+   * by passing the depth to hold fixed — normally the current depth of whatever
+   * is being dragged, which makes the drag slide it across the plane that faces
+   * the camera. That is the behaviour a student expects from a 3D handle.
+   *
+   * @param view - view-space position (already scaled and y-flipped)
+   * @param depth - camera depth to hold fixed; larger is nearer the viewer
+   */
+  public unproject(view: Vector2, depth: number): Vector3 {
+    const rotated = new Vector3(view.x / this.scale, -view.y / this.scale, depth);
+    // The rotation is a product of two rotation matrices and so is orthonormal;
+    // its transpose is its inverse, which is cheaper and exactly stable.
+    return this.rotation.transposed().timesVector3(rotated);
   }
 
   /**

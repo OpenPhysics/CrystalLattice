@@ -6,7 +6,7 @@
  * occlude each other backwards and the cell reads as inside-out.
  */
 
-import { Vector3 } from "scenerystack/dot";
+import { Vector2, Vector3 } from "scenerystack/dot";
 import { describe, expect, it } from "vitest";
 import { clampPitch, MAX_PITCH, Projection3D } from "../src/common/model/Projection3D.js";
 
@@ -114,5 +114,41 @@ describe("camera manipulation", () => {
   it("clamps pitch when a drag would push past the limit", () => {
     const camera = new Projection3D(0, MAX_PITCH, 1);
     expect(camera.rotatedBy(0, -10_000).pitch).toBeCloseTo(MAX_PITCH, 10);
+  });
+});
+
+describe("unprojection", () => {
+  /**
+   * The intercept and direction handles on the Miller Indices screen turn a
+   * two-coordinate pointer position back into a three-coordinate model point by
+   * holding the dragged point's own camera depth. If unproject ever stops being
+   * the exact inverse of project at that depth, the handle drifts away from the
+   * pointer by an amount that grows with the camera angle — subtle enough to be
+   * mistaken for "3D dragging is just like that".
+   */
+  it("is the exact inverse of projection at the point's own depth", () => {
+    const camera = new Projection3D(0.7, -0.35, 12);
+    const point = new Vector3(0.3, -0.8, 1.4);
+    const projected = camera.project(point);
+
+    const recovered = camera.unproject(projected.view, projected.depth);
+    expect(recovered.x).toBeCloseTo(point.x, 10);
+    expect(recovered.y).toBeCloseTo(point.y, 10);
+    expect(recovered.z).toBeCloseTo(point.z, 10);
+  });
+
+  it("round-trips through the view for an identity camera, including the y flip", () => {
+    const recovered = identityCamera(4).unproject(new Vector2(8, -12), 5);
+    expect(recovered.x).toBeCloseTo(2, 10);
+    expect(recovered.y).toBeCloseTo(3, 10);
+    expect(recovered.z).toBeCloseTo(5, 10);
+  });
+
+  it("puts an unprojected point back on the view position it came from", () => {
+    const camera = new Projection3D(-1.1, 0.4, 3);
+    const view = new Vector2(17, -5);
+    const projected = camera.projectToView(camera.unproject(view, 2));
+    expect(projected.x).toBeCloseTo(view.x, 10);
+    expect(projected.y).toBeCloseTo(view.y, 10);
   });
 });

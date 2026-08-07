@@ -85,6 +85,7 @@
     "interceptB": "Intercept on b",
     "interceptC": "Intercept on c",
     "parallel": "∥ (at infinity)",
+    "parallelSymbol": "∥",
     "derivation": "How the indices are found",
     "stepIntercepts": "1. Intercepts",
     "stepReciprocals": "2. Reciprocals",
