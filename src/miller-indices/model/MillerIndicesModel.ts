@@ -148,12 +148,24 @@ export class MillerIndicesModel implements TModel {
    * Sets the plane from a dragged intercept. The handle reports a length along
    * the axis in units of the lattice constant; `null` means the student pulled
    * it into the "parallel to this axis" snap zone at the track's far end.
+   *
+   * @returns whether the intercept was applied — false means the drag was
+   *   refused because it would have left no plane at all.
    */
-  public setIntercept(axis: 0 | 1 | 2, value: number | null): void {
+  public setIntercept(axis: 0 | 1 | 2, value: number | null): boolean {
     const current = [...this.interceptsProperty.value] as [Rational | null, Rational | null, Rational | null];
-    current[axis] =
-      value === null || Math.abs(value) < 1e-6 ? null : Rational.fromNumber(value, MAX_INTERCEPT_DENOMINATOR);
+    const becomesParallel = value === null || Math.abs(value) < 1e-6;
+
+    // A plane parallel to all three axes is not a plane. Refusing the third
+    // "parallel" here rather than in the view keeps the indices (0,0,0) — which
+    // nothing downstream can draw or reduce — out of the model entirely.
+    if (becomesParallel && current.every((intercept, index) => index === axis || intercept === null)) {
+      return false;
+    }
+
+    current[axis] = becomesParallel ? null : Rational.fromNumber(value, MAX_INTERCEPT_DENOMINATOR);
     this.planeIndicesProperty.value = derivePlaneIndices(current as Intercepts).indices;
+    return true;
   }
 
   /** Sets the direction from a dragged vector, reducing it to smallest integers. */

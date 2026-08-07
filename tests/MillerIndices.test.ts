@@ -8,6 +8,7 @@
 
 import { Vector3 } from "scenerystack/dot";
 import { describe, expect, it } from "vitest";
+import { MAX_INTERCEPT_DENOMINATOR, MAX_MILLER_INDEX } from "../src/CrystalLatticeConstants.js";
 import { CubicStructure, generateCellAtoms } from "../src/common/model/CubicCell.js";
 import {
   deriveDirectionIndices,
@@ -218,5 +219,78 @@ describe("planar density", () => {
 
   it("gives 4/(√3·a²) on FCC (111), the densest cubic plane", () => {
     expect(planarDensity([1, 1, 1], fccBasis, 1)).toBeCloseTo(4 / Math.sqrt(3), 6);
+  });
+});
+
+describe("the intercept handle's track", () => {
+  /**
+   * The handles on the Miller Indices screen snap to the unit fractions ±1/n and
+   * to "parallel". These are the assertions that justify that choice: the unit
+   * fractions are the only intercepts a reduced plane can have, and they are what
+   * keeps every index inside the drawable range.
+   */
+  const magnitudes = Array.from({ length: MAX_MILLER_INDEX }, (_unused, index) => 1 / (index + 1));
+
+  it("recovers the index n from an intercept of 1/n", () => {
+    // A second finite intercept is needed for the index to survive: with the
+    // other two axes parallel the triple (n00) reduces to (100), which is the
+    // reduction step doing its job rather than the handle losing information.
+    for (let n = 1; n <= MAX_MILLER_INDEX; n++) {
+      const stops: Intercepts = [new Rational(1, n), new Rational(1), null];
+      expect(derivePlaneIndices(stops).indices).toEqual([n, 1, 0]);
+    }
+  });
+
+  it("keeps every index within the drawable range for any combination of stops", () => {
+    const stops: Array<Rational | null> = [
+      ...magnitudes.map((magnitude) => new Rational(-1, Math.round(1 / magnitude))),
+      ...magnitudes.map((magnitude) => new Rational(1, Math.round(1 / magnitude))),
+      null,
+    ];
+
+    for (const a of stops) {
+      for (const b of stops) {
+        for (const c of stops) {
+          if (a === null && b === null && c === null) {
+            continue; // parallel to all three axes is not a plane
+          }
+          const indices = derivePlaneIndices([a, b, c] as Intercepts).indices;
+          for (const index of indices) {
+            expect(Math.abs(index)).toBeLessThanOrEqual(MAX_MILLER_INDEX);
+          }
+        }
+      }
+    }
+  });
+
+  it("snaps a dragged position onto an exact unit fraction rather than a float", () => {
+    // A drag that lands slightly off 1/3 must become 1/3 exactly, or the
+    // clearing step multiplies the error up into a wrong index.
+    const snapped = Rational.fromNumber(0.34, MAX_INTERCEPT_DENOMINATOR);
+    expect(snapped.numerator).toBe(1);
+    expect(snapped.denominator).toBe(3);
+  });
+
+  it("round-trips every reduced triple through its intercepts", () => {
+    for (const indices of [
+      [1, 0, 0],
+      [1, 1, 1],
+      [1, -1, 0],
+      [4, 3, 0],
+      [2, 1, 0],
+    ] as IndexTriple[]) {
+      expect(derivePlaneIndices(interceptsFromIndices(indices)).indices).toEqual(indices);
+    }
+  });
+
+  it("cannot recover (200) from its intercepts, which is why dragging never reaches it", () => {
+    // (200) is the plane (100) at half the spacing. Its nearest-to-origin
+    // representative cuts a at 1/2 and misses b and c, and that is *all* an
+    // intercept carries — the common factor is gone. So an intercept handle can
+    // only ever produce a reduced triple, and (200) stays reachable through the
+    // preset buttons and the derivation panel's note. Anything that made this
+    // assertion pass would mean the reduction step had been quietly dropped.
+    expect(derivePlaneIndices(interceptsFromIndices([2, 0, 0])).indices).toEqual([1, 0, 0]);
+    expect(interplanarSpacing([2, 0, 0], 1)).toBeCloseTo(interplanarSpacing([1, 0, 0], 1) / 2, 10);
   });
 });

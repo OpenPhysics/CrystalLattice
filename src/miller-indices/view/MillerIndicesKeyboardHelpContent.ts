@@ -2,15 +2,24 @@
  * MillerIndicesKeyboardHelpContent.ts
  *
  * Content for the keyboard-help dialog (the "?" button in the navigation bar).
- * The template's only interactions are buttons and Reset All, so a single
- * basic-actions section covers the available keyboard controls. Add a slider or
- * combo-box section here as the simulation grows.
+ *
+ * This screen's play area is driven by draggable items — the three intercept
+ * handles and the direction tip — so the move-draggable-items section is the one
+ * that carries its real interaction. The right column covers tabbing between the
+ * preset buttons and toggling the overlay check boxes.
  */
 
-import { BasicActionsKeyboardHelpSection, TwoColumnKeyboardHelpContent } from "scenerystack/scenery-phet";
+import {
+  BasicActionsKeyboardHelpSection,
+  MoveDraggableItemsKeyboardHelpSection,
+  TwoColumnKeyboardHelpContent,
+} from "scenerystack/scenery-phet";
 
 export class MillerIndicesKeyboardHelpContent extends TwoColumnKeyboardHelpContent {
   public constructor() {
-    super([new BasicActionsKeyboardHelpSection()], []);
+    super(
+      [new MoveDraggableItemsKeyboardHelpSection()],
+      [new BasicActionsKeyboardHelpSection({ withCheckboxContent: true })],
+    );
   }
 }

@@ -4,12 +4,19 @@
  * State for the Aperiodic Order screen — the one that takes back the assumption
  * every earlier screen relied on.
  *
- * Three modes share one pipeline: whatever is on screen (a Penrose tiling, a
- * patch of hat tiles, or an ordinary periodic lattice for contrast) becomes a
- * point set, and that point set goes through the same discrete Fourier
- * transform. Running all three through identical code is what makes the
- * comparison mean something: the Penrose pattern's peaks are just as sharp as
- * the lattice's, and the only difference is their symmetry.
+ * Four modes share one pipeline: whatever is on screen (an inflated Penrose
+ * tiling, a patch of hat tiles, an ordinary periodic lattice for contrast, or a
+ * patch the student has laid by hand) becomes a point set, and that point set
+ * goes through the same discrete Fourier transform. Running all four through
+ * identical code is what makes the comparison mean something: the Penrose
+ * pattern's peaks are just as sharp as the lattice's, and the only difference is
+ * their symmetry.
+ *
+ * The hand-placement mode is the same tiling reached the other way round. The
+ * inflation button grows a correct tiling by construction and says nothing about
+ * why it is correct; placing tiles one at a time against the vertex atlas is
+ * where a student meets the rule that forbids periodicity, and where they can get
+ * stuck — which is exactly why nobody generates large Penrose tilings this way.
  *
  * The diffraction transform is the expensive part — a direct sum over every
  * scatterer for every k-grid point — so it is recomputed only when the tiling
@@ -45,11 +52,15 @@ import {
   type PlacedHat,
 } from "../../common/model/EinsteinTiling.js";
 import {
+  candidatePlacements,
   countTiles,
   edgeLengthAfter,
   generatePenroseTiling,
   mergeIntoRhombi,
   type PenroseRhombus,
+  type PlacementCandidate,
+  placementSeed,
+  RhombusType,
   type TileCounts,
   tilingVertices,
 } from "../../common/model/PenroseTiling.js";
@@ -62,9 +73,16 @@ export const TilingMode = {
   EINSTEIN: "einstein",
   /** An ordinary square lattice, for contrast. */
   PERIODIC: "periodic",
+  /** The student lays Penrose rhombi by hand, against the matching rules. */
+  PLACEMENT: "placement",
 } as const;
 
 export type TilingMode = (typeof TilingMode)[keyof typeof TilingMode];
+
+/** Whether a mode shows Penrose rhombi, and so has thick/thin counts to report. */
+export function isRhombusMode(mode: TilingMode): boolean {
+  return mode === TilingMode.PENROSE || mode === TilingMode.PLACEMENT;
+}
 
 /** Slider range for the Penrose inflation depth. */
 export const INFLATION_RANGE = new Range(MIN_INFLATION_STEPS, MAX_INFLATION_STEPS);
@@ -130,6 +148,23 @@ export class AperiodicOrderModel implements TModel {
   /** Whether the point count has outgrown the live transform's budget. */
   public readonly tooManyPointsProperty: TReadOnlyProperty<boolean>;
 
+  // ── Hand placement ─────────────────────────────────────────────────────────
+
+  /** The rhombi the student has laid down, oldest first so undo can pop. */
+  public readonly placedRhombiProperty: Property<readonly PenroseRhombus[]>;
+
+  /** Which shape the palette is offering, and what a keyboard drop will place. */
+  public readonly selectedTileProperty: Property<RhombusType>;
+
+  /** Every place a next tile could go, each labelled legal or not. */
+  public readonly candidatesProperty: TReadOnlyProperty<readonly PlacementCandidate[]>;
+
+  /** How many of those places the matching rules allow — zero means stuck. */
+  public readonly legalSlotCountProperty: TReadOnlyProperty<number>;
+
+  /** True while the last attempted drop is still being refused, for the feedback line. */
+  public readonly placementRefusedProperty: BooleanProperty;
+
   public constructor() {
     this.modeProperty = new Property<TilingMode>(TilingMode.PENROSE);
     this.inflationStepsProperty = new NumberProperty(5, { range: INFLATION_RANGE });
@@ -139,17 +174,36 @@ export class AperiodicOrderModel implements TModel {
     this.showReflectedProperty = new BooleanProperty(false);
     this.compareLatticeProperty = new BooleanProperty(true);
 
+    this.placedRhombiProperty = new Property<readonly PenroseRhombus[]>([placementSeed()]);
+    this.selectedTileProperty = new Property<RhombusType>(RhombusType.THICK);
+    this.placementRefusedProperty = new BooleanProperty(false);
+
     this.rhombiProperty = new DerivedProperty([this.inflationStepsProperty], (steps) =>
       mergeIntoRhombi(generatePenroseTiling(steps)),
     );
     this.hatsProperty = new DerivedProperty([this.hatStepsProperty], (steps) => generateHatPatch(steps));
 
-    this.tileCountsProperty = new DerivedProperty([this.rhombiProperty], countTiles);
+    // Enumerating candidates walks the patch boundary and runs a separating-axis
+    // test per tile, so it is derived from the placed tiles alone and recomputed
+    // only when one is added or removed — never on a redraw.
+    this.candidatesProperty = new DerivedProperty([this.placedRhombiProperty], (placed) => candidatePlacements(placed));
+    this.legalSlotCountProperty = new DerivedProperty(
+      [this.candidatesProperty],
+      (candidates) => candidates.filter((candidate) => candidate.legal).length,
+    );
+
+    // The counts row follows whichever set of rhombi is on screen, so the
+    // thick:thin ratio a student builds by hand is reported the same way the
+    // inflated one is — and creeps toward φ far more slowly, which is the point.
+    this.tileCountsProperty = new DerivedProperty(
+      [this.modeProperty, this.rhombiProperty, this.placedRhombiProperty],
+      (mode, inflated, placed) => countTiles(mode === TilingMode.PLACEMENT ? placed : inflated),
+    );
     this.hatCountsProperty = new DerivedProperty([this.hatsProperty], countHats);
 
     this.scatterersProperty = new DerivedProperty(
-      [this.modeProperty, this.rhombiProperty, this.hatsProperty],
-      (mode, rhombi, hats): readonly Vector2[] => {
+      [this.modeProperty, this.rhombiProperty, this.hatsProperty, this.placedRhombiProperty],
+      (mode, rhombi, hats, placed): readonly Vector2[] => {
         // A finite patch's *outline* shows up in its transform, so every mode
         // trims to a disc: the pattern should report the tiling, not the shape
         // of the piece that happened to be generated. The radius is a fraction
@@ -162,6 +216,16 @@ export class AperiodicOrderModel implements TModel {
         if (mode === TilingMode.EINSTEIN) {
           const vertices = hatPatchVertices(hats);
           return circularSubset(vertices, patchRadius(vertices) * DIFFRACTION_PATCH_FRACTION);
+        }
+        if (mode === TilingMode.PLACEMENT) {
+          // No disc trim here. Trimming exists so a generated patch's outline does
+          // not imprint on its transform, but a hand-laid patch is small enough
+          // that discarding its outer ring would leave nothing — a single seed
+          // tile trims to zero points. Its outline dominates the transform either
+          // way, which is the honest answer to "how many tiles does long-range
+          // order take?": the pattern stays a blur until there are far more tiles
+          // than anyone will place by hand.
+          return tilingVertices(placed);
         }
         return periodicLatticePoints();
       },
@@ -217,6 +281,49 @@ export class AperiodicOrderModel implements TModel {
       : this.inflationStepsProperty.value < INFLATION_RANGE.max;
   }
 
+  // ── Hand placement ─────────────────────────────────────────────────────────
+
+  /**
+   * Lays a tile down, if the matching rules allow it there.
+   *
+   * An illegal candidate is *refused* rather than placed and flagged. Letting one
+   * through would leave the patch in a state no Penrose tiling contains, and
+   * every later candidate would be judged against nonsense. Refusing keeps the
+   * patch a genuine partial Penrose tiling at every step, and the illegal slots
+   * stay visible on the board so a student can see what was on offer.
+   *
+   * @returns whether the tile was placed
+   */
+  public placeTile(candidate: PlacementCandidate): boolean {
+    if (!candidate.legal) {
+      this.placementRefusedProperty.value = true;
+      return false;
+    }
+    this.placementRefusedProperty.value = false;
+    this.placedRhombiProperty.value = [...this.placedRhombiProperty.value, candidate.rhombus];
+    return true;
+  }
+
+  /** Takes back the most recently placed tile, never the seed. */
+  public undoPlacement(): void {
+    this.placementRefusedProperty.value = false;
+    const placed = this.placedRhombiProperty.value;
+    if (placed.length > 1) {
+      this.placedRhombiProperty.value = placed.slice(0, -1);
+    }
+  }
+
+  /** Whether there is anything to take back. */
+  public canUndoPlacement(): boolean {
+    return this.placedRhombiProperty.value.length > 1;
+  }
+
+  /** Clears the board back to the single seed tile. */
+  public clearPlacements(): void {
+    this.placementRefusedProperty.value = false;
+    this.placedRhombiProperty.reset();
+  }
+
   public reset(): void {
     this.modeProperty.reset();
     this.inflationStepsProperty.reset();
@@ -225,6 +332,9 @@ export class AperiodicOrderModel implements TModel {
     this.showMetatilesProperty.reset();
     this.showReflectedProperty.reset();
     this.compareLatticeProperty.reset();
+    this.placedRhombiProperty.reset();
+    this.selectedTileProperty.reset();
+    this.placementRefusedProperty.reset();
   }
 
   /** The tilings are static; nothing advances with time. */
@@ -260,9 +370,9 @@ function kRangeFor(mode: TilingMode, inflationSteps: number): number {
   if (mode === TilingMode.PENROSE) {
     return suggestedKRange(edgeLengthAfter(inflationSteps), DIFFRACTION_PERIODS);
   }
-  if (mode === TilingMode.EINSTEIN) {
-    // The hat's kite edge is 1 in the model's own units, and the patch is not
-    // rescaled as it grows, so the window is fixed.
+  if (mode === TilingMode.EINSTEIN || mode === TilingMode.PLACEMENT) {
+    // Both are built at unit edge and never rescaled as they grow, so the window
+    // is fixed rather than following an inflation depth.
     return suggestedKRange(1, DIFFRACTION_PERIODS);
   }
   return periodicKRange();

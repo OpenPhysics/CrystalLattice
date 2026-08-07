@@ -85,6 +85,25 @@ atlas is read off inflated tilings — every complete vertex of a large patch co
 sequence of corner angles, and the observed set *is* the atlas. It is computed lazily and cached, and
 `tests/AperiodicTiling.test.ts` checks that every star sums to a full turn.
 
+**Hand placement** builds on that atlas. `candidatePlacements` walks the patch boundary and offers
+both tile shapes on both sides of every open edge, dropping only the ones that would physically
+overlap; `isPatchPlacementLegal` then labels each survivor. Candidates are *labelled* rather than
+filtered, because the illegal ones are the lesson: they fit flush and are refused anyway, which is
+the whole content of "matching rules". Getting stuck is a reachable state and is reported as such —
+it is why nobody grows large Penrose tilings this way, and the `Inflate` button next door is the
+answer to it.
+
+Ordering the corners around a vertex is the fiddly part. `isVertexStarLegal` reads a partial vertex
+as a contiguous arc of some legal star, so the corners have to be handed to it in true angular order
+starting after the empty wedge. `vertexArcs` does that from the wedge geometry — each corner spans its
+own angle from its own bearing — and `isPatchPlacementLegal` reverses an arc when the new corner lands
+at its clockwise end. That reversal is sound only because the atlas is closed under reflection, which
+the tests pin directly.
+
+The strongest correctness check available is that a tiling the inflation guarantees is correct must
+accept each of its own interior tiles back into the rest of itself; the tests run it over every
+interior tile of a four-step patch.
+
 **The hat** has no local matching rules at all. `EinsteinTiling.ts` is a TypeScript port of Craig
 Kaplan's `hatviz`: the hat outline on the kite grid, the H/T/P/F metatile geometry, the 29-rule patch
 assembly, and the supertile extraction that cuts the next level's metatiles out of that patch. See
@@ -143,12 +162,9 @@ Draggable plain Nodes (the 2D vector handles, the rotatable cells) also carry `t
 - Screen 3's custom-sequence entry offers a short list of instructive stacking faults rather than a
   free-text field: a six-character answer typed on a touch screen is a poor interaction, and the
   presets cover the cases worth seeing.
-- Screen 5's hand-placement mode is not shipped. The matching-rule machinery it needs
-  (`isPlacementLegal`, `vertexAtlas`) is implemented and tested, but the drag-and-drop UI on top of it
-  is not; `Inflate` and the mode selector are the paths into the tilings for now.
-- Screen 4's intercept handles are not draggable in the play area. `MillerIndicesModel.setIntercept`
-  and `setDirectionFromVector` are implemented against the exact-rational pipeline, but the screen
-  currently drives them through the worked-example presets rather than through handles on the axes.
+- The spec left the home-screen and navigation-bar icons unspecified. Each one is drawn from the
+  geometry module its screen uses rather than hand-composed, so a wrong camera or a wrong plane shows
+  up in the icon too (`CrystalLatticeScreenIcons.ts`).
 
 ## Commands
 

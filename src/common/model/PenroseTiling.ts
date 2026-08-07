@@ -441,3 +441,367 @@ export function isPlacementLegal(candidate: PenroseRhombus, existingCorners: rea
   }
   return true;
 }
+
+// ── Hand placement ───────────────────────────────────────────────────────────
+//
+// The functions above answer "is this vertex arrangement legal?". The ones below
+// turn that into something a student can play: given a patch of tiles already on
+// the table, where could the *next* tile go, and which of those places does the
+// vertex atlas allow?
+//
+// The distinction is the whole point of the exercise. Undecorated rhombi fit
+// together in far more ways than a Penrose tiling permits — a candidate that is
+// geometrically flush and still illegal is not a bug, it is the lesson. So the
+// candidates are enumerated on pure geometry and each is *labelled* by the
+// matching rules rather than filtered out by them, leaving the screen free to
+// draw the illegal ones and let a student discover why they are refused.
+//
+// Still no Scenery imports: all of this is unit-tested in tests/AperiodicTiling.test.ts.
+
+/** One turn of the 36° units corner angles are measured in, in radians. */
+const CORNER_UNIT_RADIANS = Math.PI / 5;
+
+/**
+ * Angular slack when deciding whether two corners at a vertex abut. Corner
+ * angles are multiples of 36°, so anything well under half of that separates a
+ * genuine gap from accumulated floating-point drift.
+ */
+const BEARING_TOLERANCE = 1e-3;
+
+/** The apex angle of a rhombus, in 36° units — 1 for thin (36°), 3 for thick (108°). */
+export function apexAngleUnits(type: RhombusType): number {
+  return (type === RhombusType.THIN ? THIN_CORNERS[0] : THICK_CORNERS[0]) ?? 0;
+}
+
+/**
+ * A rhombus with vertex 0 at `apex` and the edge to vertex 1 pointing along
+ * `angle`, wound counter-clockwise so even indices are the apexes — the order
+ * {@link cornerAngleUnits} assumes.
+ */
+export function rhombusAt(type: RhombusType, apex: Vector2, angle: number, edgeLength = 1): PenroseRhombus {
+  const alpha = apexAngleUnits(type) * CORNER_UNIT_RADIANS;
+  const first = Vector2.createPolar(edgeLength, angle);
+  const second = Vector2.createPolar(edgeLength, angle + alpha);
+  // A rhombus is spanned by its two edge vectors: the far apex is their sum.
+  return { type, vertices: [apex, apex.plus(first), apex.plus(first).plus(second), apex.plus(second)] };
+}
+
+/** The bearing of the edge leaving vertex `index` counter-clockwise. */
+export function cornerBearing(rhombus: PenroseRhombus, index: number): number {
+  // biome-ignore lint/style/noNonNullAssertion: a rhombus always has four vertices
+  const from = rhombus.vertices[index % 4]!;
+  // biome-ignore lint/style/noNonNullAssertion: modular index stays in range
+  const to = rhombus.vertices[(index + 1) % 4]!;
+  return Math.atan2(to.y - from.y, to.x - from.x);
+}
+
+/** One edge of a patch, as it is wound in the tile that owns it. */
+export type PatchEdge = { readonly from: Vector2; readonly to: Vector2 };
+
+/**
+ * The edges only one tile touches — the patch boundary, and therefore every
+ * place a next tile could attach. An interior edge is shared by exactly two
+ * tiles and is already spoken for.
+ */
+export function openEdges(rhombi: readonly PenroseRhombus[], tolerance = 1e-6): PatchEdge[] {
+  const counts = new Map<string, { edge: PatchEdge; count: number }>();
+
+  for (const rhombus of rhombi) {
+    for (let index = 0; index < 4; index++) {
+      // biome-ignore lint/style/noNonNullAssertion: index < 4 and vertices has length 4
+      const from = rhombus.vertices[index]!;
+      // biome-ignore lint/style/noNonNullAssertion: modular index stays in range
+      const to = rhombus.vertices[(index + 1) % 4]!;
+      const key = edgeKey(from, to, tolerance);
+      const seen = counts.get(key);
+      if (seen) {
+        seen.count++;
+      } else {
+        counts.set(key, { edge: { from, to }, count: 1 });
+      }
+    }
+  }
+
+  return [...counts.values()].filter((entry) => entry.count === 1).map((entry) => entry.edge);
+}
+
+/** A place a tile could go, and whether the matching rules allow it there. */
+export type PlacementCandidate = {
+  readonly rhombus: PenroseRhombus;
+  /** Whether every vertex it touches stays completable — see {@link isPatchPlacementLegal}. */
+  readonly legal: boolean;
+};
+
+/**
+ * Every distinct rhombus that shares a boundary edge with the patch and does not
+ * overlap it, each labelled legal or not.
+ *
+ * Both tile types are offered on both sides of every open edge; the ones that
+ * would lie on top of an existing tile are dropped, and what remains is exactly
+ * the set of physically possible next moves. An empty patch has no edges to
+ * attach to, so the caller seeds it with {@link placementSeed}.
+ */
+export function candidatePlacements(
+  rhombi: readonly PenroseRhombus[],
+  edgeLength = 1,
+  tolerance = 1e-6,
+): PlacementCandidate[] {
+  const byCentroid = new Map<string, PenroseRhombus>();
+
+  for (const edge of openEdges(rhombi, tolerance)) {
+    for (const type of [RhombusType.THIN, RhombusType.THICK]) {
+      for (const [from, to] of [
+        [edge.from, edge.to],
+        [edge.to, edge.from],
+      ] as const) {
+        for (let index = 0; index < 4; index++) {
+          const candidate = rhombusOnEdge(type, from, to, index, edgeLength);
+          if (overlapsPatch(candidate, rhombi, edgeLength, tolerance)) {
+            continue;
+          }
+          byCentroid.set(centroidKey(candidate, tolerance), candidate);
+        }
+      }
+    }
+  }
+
+  return [...byCentroid.values()].map((rhombus) => ({
+    rhombus,
+    legal: isPatchPlacementLegal(rhombi, rhombus, tolerance),
+  }));
+}
+
+/** The rhombus whose vertex `index` sits at `from` and whose next vertex sits at `to`. */
+function rhombusOnEdge(
+  type: RhombusType,
+  from: Vector2,
+  to: Vector2,
+  index: number,
+  edgeLength: number,
+): PenroseRhombus {
+  // Build the rhombus in a canonical pose, then rotate it so the requested edge
+  // points the right way and slide that edge's start onto `from`. Every edge has
+  // the same length, so this is a rigid motion and needs no scaling.
+  const canonical = rhombusAt(type, Vector2.ZERO, 0, edgeLength);
+  const rotation = Math.atan2(to.y - from.y, to.x - from.x) - cornerBearing(canonical, index);
+  // biome-ignore lint/style/noNonNullAssertion: index < 4 and vertices has length 4
+  const pivot = canonical.vertices[index]!;
+
+  const place = (vertex: Vector2): Vector2 => vertex.minus(pivot).rotated(rotation).plus(from);
+  const [v0, v1, v2, v3] = canonical.vertices;
+  return { type, vertices: [place(v0), place(v1), place(v2), place(v3)] };
+}
+
+/** A stable key for a tile's position, used to drop duplicate candidates. */
+function centroidKey(rhombus: PenroseRhombus, tolerance: number): string {
+  const centroid = rhombus.vertices
+    .reduce((sum, vertex) => sum.plus(vertex), new Vector2(0, 0))
+    .timesScalar(1 / rhombus.vertices.length);
+  return `${Math.round(centroid.x / tolerance)},${Math.round(centroid.y / tolerance)}`;
+}
+
+/** Whether a candidate would lie on top of any tile already placed. */
+function overlapsPatch(
+  candidate: PenroseRhombus,
+  rhombi: readonly PenroseRhombus[],
+  edgeLength: number,
+  tolerance: number,
+): boolean {
+  // Sharing a whole edge is the normal case and must not read as an overlap, so
+  // the separating-axis test is given slack far larger than the vertex tolerance
+  // but far smaller than any real sliver of shared area.
+  const slack = Math.max(tolerance, 1e-3 * edgeLength);
+  return rhombi.some((placed) => convexPolygonsOverlap(candidate.vertices, placed.vertices, slack));
+}
+
+/** Separating-axis test for two convex polygons, treating a `slack` sliver as no overlap. */
+function convexPolygonsOverlap(a: readonly Vector2[], b: readonly Vector2[], slack: number): boolean {
+  for (const polygon of [a, b]) {
+    for (let index = 0; index < polygon.length; index++) {
+      // biome-ignore lint/style/noNonNullAssertion: index is bounded by the loop
+      const from = polygon[index]!;
+      // biome-ignore lint/style/noNonNullAssertion: modular index stays in range
+      const to = polygon[(index + 1) % polygon.length]!;
+      const axis = new Vector2(-(to.y - from.y), to.x - from.x);
+      if (axis.magnitude < 1e-12) {
+        continue;
+      }
+      const unit = axis.normalized();
+      const [aMin, aMax] = extentAlong(a, unit);
+      const [bMin, bMax] = extentAlong(b, unit);
+      if (aMax - bMin <= slack || bMax - aMin <= slack) {
+        return false; // this axis separates them
+      }
+    }
+  }
+  return true;
+}
+
+/** The interval a polygon covers when projected onto a unit axis. */
+function extentAlong(polygon: readonly Vector2[], axis: Vector2): [number, number] {
+  const values = polygon.map((vertex) => vertex.dot(axis));
+  return [Math.min(...values), Math.max(...values)];
+}
+
+/** One rhombus corner as it meets a vertex. */
+export type VertexCorner = {
+  /** The corner angle, in 36° units. */
+  readonly angle: number;
+  /** Bearing of the edge that bounds the corner counter-clockwise-first. */
+  readonly direction: number;
+};
+
+/** Every corner of `rhombi` that meets `vertex`, unsorted. */
+export function cornersAtVertex(rhombi: readonly PenroseRhombus[], vertex: Vector2, tolerance = 1e-6): VertexCorner[] {
+  const corners: VertexCorner[] = [];
+
+  for (const rhombus of rhombi) {
+    for (let index = 0; index < 4; index++) {
+      // biome-ignore lint/style/noNonNullAssertion: index < 4 and vertices has length 4
+      if (rhombus.vertices[index]!.distance(vertex) < tolerance) {
+        corners.push({ angle: cornerAngleUnits(rhombus, index), direction: cornerBearing(rhombus, index) });
+      }
+    }
+  }
+  return corners;
+}
+
+/**
+ * The maximal contiguous runs of corners around a vertex, counter-clockwise.
+ *
+ * A corner occupies the wedge from its own bearing through its angle, so two
+ * corners abut when one wedge ends where the next begins. A complete vertex
+ * comes back as a single run; a partly-filled one comes back as one run per
+ * filled arc, each starting where an empty wedge left off. That start matters:
+ * {@link isVertexStarLegal} reads a partial run as a contiguous arc of some
+ * legal star, which is only meaningful if the run really is contiguous.
+ */
+export function vertexArcs(corners: readonly VertexCorner[]): VertexCorner[][] {
+  if (corners.length === 0) {
+    return [];
+  }
+
+  const sorted = [...corners].sort((a, b) => a.direction - b.direction);
+  const abuts = (corner: VertexCorner, next: VertexCorner): boolean => {
+    const gap = normalizeAngle(next.direction - corner.direction - corner.angle * CORNER_UNIT_RADIANS);
+    return Math.abs(gap) < BEARING_TOLERANCE;
+  };
+
+  // Start at a corner whose predecessor does not reach it, so the walk begins at
+  // the far side of a gap. When every corner abuts the next the vertex is full
+  // and any starting point does, since a complete star is compared cyclically.
+  const start = sorted.findIndex((corner, index) => {
+    // biome-ignore lint/style/noNonNullAssertion: modular index stays in range
+    const previous = sorted[(index - 1 + sorted.length) % sorted.length]!;
+    return !abuts(previous, corner);
+  });
+  if (start === -1) {
+    return [sorted];
+  }
+
+  const arcs: VertexCorner[][] = [];
+  let current: VertexCorner[] = [];
+  for (let step = 0; step < sorted.length; step++) {
+    // biome-ignore lint/style/noNonNullAssertion: modular index stays in range
+    const corner = sorted[(start + step) % sorted.length]!;
+    // biome-ignore lint/style/noNonNullAssertion: modular index stays in range
+    const previous = sorted[(start + step - 1 + sorted.length) % sorted.length]!;
+    if (step > 0 && !abuts(previous, corner)) {
+      arcs.push(current);
+      current = [];
+    }
+    current.push(corner);
+  }
+  arcs.push(current);
+  return arcs;
+}
+
+/** Wraps an angle to (−π, π]. */
+function normalizeAngle(angle: number): number {
+  const wrapped = ((angle % (2 * Math.PI)) + 3 * Math.PI) % (2 * Math.PI);
+  return wrapped - Math.PI;
+}
+
+/**
+ * Whether adding `candidate` to `rhombi` keeps every vertex it touches legal —
+ * the check the hand-placement mode runs before it will accept a drop.
+ *
+ * {@link isPlacementLegal} does the deciding wherever it can. It takes the
+ * corners already at a vertex and appends the candidate's, so it needs them in
+ * the order that rebuilds the arc, which is what this function works out:
+ *
+ *  - the candidate normally lands at one end of an existing arc. Landing at the
+ *    counter-clockwise end needs no work; landing at the other end is handled by
+ *    reading the arc backwards, which is sound because the vertex atlas is closed
+ *    under reflection (pinned in tests/AperiodicTiling.test.ts).
+ *  - a candidate that exactly bridges two arcs is last in neither, so its merged
+ *    run goes straight to {@link isVertexStarLegal}.
+ *
+ * Corners in a *different* arc at the same vertex are checked on their own: they
+ * sit behind a wedge the candidate does not touch, and each must still be
+ * completable for the vertex as a whole to have a future.
+ */
+export function isPatchPlacementLegal(
+  rhombi: readonly PenroseRhombus[],
+  candidate: PenroseRhombus,
+  tolerance = 1e-6,
+): boolean {
+  const existingPerVertex: number[][] = [];
+  const separateArcs: number[][] = [];
+  const mergedRuns: number[][] = [];
+
+  for (let index = 0; index < 4; index++) {
+    // biome-ignore lint/style/noNonNullAssertion: index < 4 and vertices has length 4
+    const vertex = candidate.vertices[index]!;
+    const direction = cornerBearing(candidate, index);
+    const arcs = vertexArcs(cornersAtVertex([...rhombi, candidate], vertex, tolerance));
+
+    const joined = arcs.find((arc) =>
+      arc.some((corner) => Math.abs(normalizeAngle(corner.direction - direction)) < BEARING_TOLERANCE),
+    );
+    for (const arc of arcs) {
+      if (arc !== joined) {
+        separateArcs.push(arc.map((corner) => corner.angle));
+      }
+    }
+    if (joined === undefined) {
+      // The candidate's own corner is always somewhere in its own vertex's arcs.
+      return false;
+    }
+
+    const position = joined.findIndex(
+      (corner) => Math.abs(normalizeAngle(corner.direction - direction)) < BEARING_TOLERANCE,
+    );
+    const angles = joined.map((corner) => corner.angle);
+
+    if (position === joined.length - 1) {
+      existingPerVertex.push(angles.slice(0, -1));
+    } else if (position === 0) {
+      existingPerVertex.push(angles.slice(1).reverse());
+    } else {
+      existingPerVertex.push([]);
+      mergedRuns.push(angles);
+    }
+  }
+
+  return (
+    isPlacementLegal(candidate, existingPerVertex) &&
+    mergedRuns.every(isVertexStarLegal) &&
+    separateArcs.every(isVertexStarLegal)
+  );
+}
+
+/**
+ * The single tile a hand-placement session starts from, centred on the origin so
+ * the first ring of candidates fans out around the middle of the board rather
+ * than off one side of it.
+ */
+export function placementSeed(type: RhombusType = RhombusType.THICK, edgeLength = 1): PenroseRhombus {
+  const raw = rhombusAt(type, Vector2.ZERO, 0, edgeLength);
+  const centroid = raw.vertices.reduce((sum, vertex) => sum.plus(vertex), new Vector2(0, 0)).timesScalar(1 / 4);
+  const [v0, v1, v2, v3] = raw.vertices;
+  return {
+    type,
+    vertices: [v0.minus(centroid), v1.minus(centroid), v2.minus(centroid), v3.minus(centroid)],
+  };
+}

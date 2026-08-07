@@ -120,6 +120,11 @@ export const MAX_INTERCEPT_DENOMINATOR = 4;
 /** Largest |index| the reverse-entry field accepts, keeping planes drawable. */
 export const MAX_MILLER_INDEX = 4;
 
+/** Where the "parallel to this axis" stop sits on an intercept track, in cell edges.
+ *  Past the last finite stop but inside the axis arrow, so it reads as the far end
+ *  of the same track rather than as a separate control. */
+export const PARALLEL_INTERCEPT_POSITION = 1.15;
+
 // ── Aperiodic Order screen ───────────────────────────────────────────────────
 
 /** Fewest Penrose inflation steps. One, not zero: the bare seed's triangles do
@@ -177,6 +182,7 @@ CrystalLatticeNamespace.register("CrystalLatticeConstants", {
   MILLER_CELL_EDGE_NM,
   MAX_INTERCEPT_DENOMINATOR,
   MAX_MILLER_INDEX,
+  PARALLEL_INTERCEPT_POSITION,
   MIN_INFLATION_STEPS,
   MAX_INFLATION_STEPS,
   MAX_HAT_STEPS,

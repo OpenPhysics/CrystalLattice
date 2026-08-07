@@ -85,6 +85,7 @@
     "interceptB": "Intersección con b",
     "interceptC": "Intersección con c",
     "parallel": "∥ (en el infinito)",
+    "parallelSymbol": "∥",
     "derivation": "Cómo se obtienen los índices",
     "stepIntercepts": "1. Intersecciones",
     "stepReciprocals": "2. Recíprocos",
@@ -106,6 +107,7 @@
     "penroseMode": "Teselas de Penrose",
     "einsteinMode": "Tesela einstein",
     "periodicMode": "Red periódica",
+    "placementMode": "Colocar a mano",
     "inflate": "Inflar",
     "deflate": "Retroceder",
     "autoTile": "Teselar automáticamente",
@@ -131,7 +133,17 @@
     "forbiddenNote": "Los picos nítidos indican orden de largo alcance. La simetría decagonal está prohibida en toda red periódica: solo los ejes de orden 1, 2, 3, 4 y 6 son compatibles con la periodicidad traslacional.",
     "shechtmanNote": "Esto es lo que Shechtman midió en Al–Mn enfriado rápidamente en 1982, y por lo que se concedió el Premio Nobel de Química de 2011.",
     "hatSpectreNote": "El sombrero solo tesela el plano si se permiten copias reflejadas. El espectro, hallado meses después, solo necesita rotaciones de una tesela quiral.",
-    "tooManyPoints": "Demasiados puntos para una transformada en vivo: retrocede para ver el patrón."
+    "tooManyPoints": "Demasiados puntos para una transformada en vivo: retrocede para ver el patrón.",
+    "palette": "Arrastra una tesela a un hueco",
+    "thickTile": "Grueso",
+    "thinTile": "Delgado",
+    "undoPlacement": "Deshacer",
+    "clearPlacements": "Borrar",
+    "placedTiles": "Teselas colocadas",
+    "legalSlots": "Huecos válidos",
+    "placementHint": "Los contornos verdes son válidos. Los rojos encajan perfectamente y siguen estando prohibidos: esa es la regla de emparejamiento en acción.",
+    "illegalPlacement": "Rechazado: esa disposición de esquinas nunca aparece en un mosaico de Penrose.",
+    "stuckNote": "No queda ningún hueco válido. Este es el callejón sin salida que hace que la inflación, y no las reglas de emparejamiento, sea la forma de hacer crecer un mosaico grande."
   },
   "a11y": {
     "lattices2D": {
@@ -226,8 +238,16 @@
         "showMetatiles": "Colorear cada sombrero según la metatesela a la que pertenece",
         "showReflected": "Marcar las copias reflejadas del sombrero",
         "compareLattice": "Mostrar al lado el patrón de difracción de una red periódica",
-        "diffractionView": "Patrón de difracción calculado del teselado actual"
-      }
+        "diffractionView": "Patrón de difracción calculado del teselado actual",
+        "placementBoard": "Tablero de teselas de Penrose colocadas a mano, con un hueco marcado en cada lugar donde podría ir la siguiente",
+        "paletteThick": "Rombo grueso; arrástralo a un hueco, o selecciónalo y activa un hueco",
+        "paletteThin": "Rombo delgado; arrástralo a un hueco, o selecciónalo y activa un hueco",
+        "legalSlot": "Hueco válido; actívalo para colocar aquí la tesela seleccionada",
+        "illegalSlot": "Hueco prohibido; las formas encajan pero las reglas de emparejamiento no permiten esta esquina",
+        "undoPlacement": "Retirar la última tesela colocada",
+        "clearPlacements": "Retirar todas las teselas colocadas a mano y empezar de nuevo con una"
+      },
+      "currentDetailsPlacement": "Has colocado {{tiles}} teselas a mano: {{thick}} gruesas y {{thin}} delgadas. En el tablero hay {{legal}} huecos válidos y {{forbidden}} prohibidos."
     }
   },
   "preferences": {
