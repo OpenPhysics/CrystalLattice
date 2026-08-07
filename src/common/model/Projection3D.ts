@@ -151,14 +151,19 @@ export class Projection3D {
 
   /**
    * Applies a drag delta measured in view pixels. Dragging right increases yaw
-   * and dragging down decreases pitch, which is the mapping that makes the cell
-   * feel like it is being pushed by the pointer. Pitch is clamped so the cell
-   * never tips past straight-down or straight-up.
+   * and dragging down increases pitch, which is the mapping that makes the
+   * grabbed face follow the pointer (direct manipulation). Pitch is clamped so
+   * the cell never tips past straight-down or straight-up.
+   *
+   * Note the sign on `deltaViewY`: Scenery's view coordinates grow downward, so
+   * a downward pointer drag arrives as a *positive* `deltaViewY`. Adding it
+   * (rather than subtracting) is what keeps the cell moving the same way as the
+   * cursor — subtracting would tip the cell opposite to the drag.
    */
   public rotatedBy(deltaViewX: number, deltaViewY: number, radiansPerPixel = DEFAULT_RADIANS_PER_PIXEL): Projection3D {
     return new Projection3D(
       this.yaw + deltaViewX * radiansPerPixel,
-      clampPitch(this.pitch - deltaViewY * radiansPerPixel),
+      clampPitch(this.pitch + deltaViewY * radiansPerPixel),
       this.scale,
     );
   }

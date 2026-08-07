@@ -99,9 +99,9 @@ describe("camera manipulation", () => {
     expect(camera.rotatedBy(100, 0).yaw).toBeGreaterThan(0);
   });
 
-  it("turns a downward drag into decreasing pitch", () => {
+  it("turns a downward drag into increasing pitch", () => {
     const camera = new Projection3D(0, 0, 1);
-    expect(camera.rotatedBy(0, 100).pitch).toBeLessThan(0);
+    expect(camera.rotatedBy(0, 100).pitch).toBeGreaterThan(0);
   });
 
   it("keeps scale across rotations, and orientation across rescales", () => {
@@ -113,7 +113,7 @@ describe("camera manipulation", () => {
 
   it("clamps pitch when a drag would push past the limit", () => {
     const camera = new Projection3D(0, MAX_PITCH, 1);
-    expect(camera.rotatedBy(0, -10_000).pitch).toBeCloseTo(MAX_PITCH, 10);
+    expect(camera.rotatedBy(0, 10_000).pitch).toBeCloseTo(MAX_PITCH, 10);
   });
 });
 
