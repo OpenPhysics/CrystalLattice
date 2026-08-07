@@ -8,7 +8,7 @@ quantities that follow from them, learn to index planes and directions — and t
 screen, meet the case where the repeating unit cell every earlier screen assumed turns out not to
 be necessary at all.
 
-## Screens
+## Features
 
 | Screen | What it shows |
 |---|---|
@@ -21,7 +21,7 @@ be necessary at all.
 The physics is documented for educators in [`doc/model.md`](doc/model.md) and for developers in
 [`doc/implementation-notes.md`](doc/implementation-notes.md).
 
-## Features
+### Under the hood
 
 - Model/view separation, with all crystallography in Scenery-free modules under `src/common/model/`
 - 205 unit tests covering the geometry, the tiling generators, the matching rules, and the diffraction transform

@@ -129,6 +129,13 @@ A11y strings live under the `a11y` key per screen in each locale JSON, reached t
 - `src/common/model/` holds pure geometry modules rather than `*Model.ts` screen models. This is a
   deliberate split from the fleet's usual one-model-per-screen shape: the pure layer is what makes
   the physics testable without a DOM, and each screen still has its own Property-holding model.
+- Four literal colours sit outside `CrystalLatticeColors.ts`, and Baton's compliance check warns
+  about them by design. All four are *neutral overlays on top of an already-themed fill* rather than
+  palette choices: the sharing wedge's `rgba(255,255,255,0.55)` and the fraction badge's
+  `rgba(0,0,0,0.65)` / `#ffffff` in `CubicCellNode.ts` must read against whatever colour the atom
+  underneath happens to be, in either profile, and `AtomNode.ts`'s `#ffffff` is the fallback when a
+  caller hands it something that is not a colour at all. Putting them in the profile would invite a
+  projector-mode value that makes the wedge invisible on a light sphere.
 - `scripts/rename-sim.ts` and `scripts/scaffold-screens.ts` are inherited from the template and no
   longer apply to this repo. They stay in the tree so template updates merge cleanly.
 
