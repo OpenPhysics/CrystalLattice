@@ -107,6 +107,7 @@
     "penroseMode": "Tuiles de Penrose",
     "einsteinMode": "Tuile einstein",
     "periodicMode": "Réseau périodique",
+    "placementMode": "Placer à la main",
     "inflate": "Gonfler",
     "deflate": "Revenir en arrière",
     "autoTile": "Paver automatiquement",
@@ -132,7 +133,17 @@
     "forbiddenNote": "Des pics nets signifient un ordre à longue distance. La symétrie d'ordre dix est interdite pour tout réseau périodique : seuls les axes d'ordre 1, 2, 3, 4 et 6 sont compatibles avec la périodicité par translation.",
     "shechtmanNote": "C'est ce que Shechtman a mesuré dans un Al–Mn refroidi rapidement en 1982, et ce qui a valu le prix Nobel de chimie 2011.",
     "hatSpectreNote": "Le chapeau ne pave le plan que si les copies réfléchies sont autorisées. Le spectre, trouvé quelques mois plus tard, ne nécessite que des rotations d'une seule tuile chirale.",
-    "tooManyPoints": "Trop de points pour une transformée en direct : revenez en arrière pour voir la figure."
+    "tooManyPoints": "Trop de points pour une transformée en direct : revenez en arrière pour voir la figure.",
+    "palette": "Faites glisser une tuile sur un emplacement",
+    "thickTile": "Épais",
+    "thinTile": "Mince",
+    "undoPlacement": "Annuler",
+    "clearPlacements": "Effacer",
+    "placedTiles": "Tuiles placées",
+    "legalSlots": "Emplacements valides",
+    "placementHint": "Les contours verts sont valides. Les rouges s'emboîtent parfaitement et restent interdits — c'est la règle d'assemblage à l'œuvre.",
+    "illegalPlacement": "Refusé : cet agencement de coins n'apparaît jamais dans un pavage de Penrose.",
+    "stuckNote": "Plus aucun emplacement valide. C'est l'impasse qui fait de l'inflation, et non des règles d'assemblage, la façon de faire croître un grand pavage."
   },
   "a11y": {
     "lattices2D": {
@@ -227,8 +238,16 @@
         "showMetatiles": "Colorer chaque chapeau selon la métatuile à laquelle il appartient",
         "showReflected": "Marquer les copies réfléchies du chapeau",
         "compareLattice": "Afficher à côté la figure de diffraction d'un réseau périodique",
-        "diffractionView": "Figure de diffraction calculée du pavage actuel"
-      }
+        "diffractionView": "Figure de diffraction calculée du pavage actuel",
+        "placementBoard": "Plateau de tuiles de Penrose placées à la main, avec un emplacement tracé partout où une tuile pourrait aller",
+        "paletteThick": "Losange épais ; faites-le glisser sur un emplacement, ou sélectionnez-le puis activez un emplacement",
+        "paletteThin": "Losange mince ; faites-le glisser sur un emplacement, ou sélectionnez-le puis activez un emplacement",
+        "legalSlot": "Emplacement valide ; activez pour y poser la tuile sélectionnée",
+        "illegalSlot": "Emplacement interdit ; les formes s'emboîtent mais les règles d'assemblage refusent ce coin",
+        "undoPlacement": "Retirer la tuile posée en dernier",
+        "clearPlacements": "Retirer toutes les tuiles posées à la main et repartir d'une seule"
+      },
+      "currentDetailsPlacement": "Vous avez posé {{tiles}} tuiles à la main : {{thick}} épaisses et {{thin}} minces. Le plateau compte {{legal}} emplacements valides et {{forbidden}} interdits."
     }
   },
   "preferences": {

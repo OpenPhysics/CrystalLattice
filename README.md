@@ -15,8 +15,8 @@ be necessary at all.
 | **2D Lattices** | Drag two primitive vectors and find the five 2D Bravais lattices. Primitive cell, Wigner–Seitz construction, coordination shell, areal density. |
 | **Cubic Systems** | Build SC, BCC and FCC cells. Count shared atoms, discover the touching condition by dragging into it, and compare the computed density against real cubic metals. |
 | **Close-Packing** | Stack ABAB versus ABCABC and watch the packing fraction *not* move. Axial-ratio slider, real-metal c/a table, and classification of any stacking fault. |
-| **Miller Indices** | Translate between geometry and (hkl) / [uvw] notation, with the intercepts → reciprocals → clear → reduce derivation shown in full. Includes why (200) ≠ (100). |
-| **Aperiodic Order** | Penrose tilings and the 2023 "hat" monotile, with a live diffraction pattern beside a periodic lattice's: both sharp, but only one with ten-fold symmetry. |
+| **Miller Indices** | Drag an intercept handle along each axis and watch the derivation follow: intercepts → reciprocals → clear → reduce, shown in full. Includes why (200) ≠ (100). |
+| **Aperiodic Order** | Penrose tilings and the 2023 "hat" monotile, with a live diffraction pattern beside a periodic lattice's: both sharp, but only one with ten-fold symmetry. Lay Penrose rhombi by hand against the matching rules, and find the dead ends that make inflation the practical way to grow one. |
 
 The physics is documented for educators in [`doc/model.md`](doc/model.md) and for developers in
 [`doc/implementation-notes.md`](doc/implementation-notes.md).
@@ -24,7 +24,7 @@ The physics is documented for educators in [`doc/model.md`](doc/model.md) and fo
 ## Features
 
 - Model/view separation, with all crystallography in Scenery-free modules under `src/common/model/`
-- 184 unit tests covering the geometry, the tiling generators, and the diffraction transform
+- 205 unit tests covering the geometry, the tiling generators, the matching rules, and the diffraction transform
 - Full Interactive Description support: live screen summaries, named controls, explicit PDOM order
 - English, Spanish, and French localization via `StringManager`
 - Default and projector color profiles

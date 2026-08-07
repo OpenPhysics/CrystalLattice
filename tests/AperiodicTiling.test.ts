@@ -24,17 +24,27 @@ import {
   SPECTRE_OUTLINE,
 } from "../src/common/model/EinsteinTiling.js";
 import {
+  apexAngleUnits,
+  candidatePlacements,
+  cornerAngleUnits,
+  cornersAtVertex,
   countTiles,
   edgeLengthAfter,
   GOLDEN_RATIO,
   generatePenroseTiling,
   inflate,
+  isPatchPlacementLegal,
   isVertexStarLegal,
   mergeIntoRhombi,
+  openEdges,
+  type PenroseRhombus,
   penroseSeed,
+  placementSeed,
   RhombusType,
   RobinsonTriangleType,
+  rhombusAt,
   tilingVertices,
+  vertexArcs,
   vertexAtlas,
 } from "../src/common/model/PenroseTiling.js";
 
@@ -237,3 +247,186 @@ function polygonArea(vertices: readonly Vector2[]): number {
 function centroid(vertices: readonly Vector2[]): Vector2 {
   return vertices.reduce((sum, vertex) => sum.plus(vertex), new Vector2(0, 0)).timesScalar(1 / vertices.length);
 }
+
+/** The centre of a rhombus, for locating tiles in a patch. */
+function rhombusCentre(rhombus: PenroseRhombus): Vector2 {
+  return centroid(rhombus.vertices);
+}
+
+/** Canonical key for a cyclic sequence — the lexicographically smallest rotation. */
+function cyclicKey(sequence: readonly number[]): string {
+  let best: string | null = null;
+  for (let start = 0; start < sequence.length; start++) {
+    const rotated = [...sequence.slice(start), ...sequence.slice(0, start)].join(",");
+    if (best === null || rotated < best) {
+      best = rotated;
+    }
+  }
+  return best ?? "";
+}
+
+describe("building a rhombus from scratch", () => {
+  it("gives unit edges and the apex angle the type is named for", () => {
+    for (const type of [RhombusType.THIN, RhombusType.THICK] as const) {
+      const rhombus = rhombusAt(type, new Vector2(0.3, -0.2), 0.7);
+      for (let index = 0; index < 4; index++) {
+        // biome-ignore lint/style/noNonNullAssertion: a rhombus has four vertices
+        expect(rhombus.vertices[index]!.distance(rhombus.vertices[(index + 1) % 4]!)).toBeCloseTo(1, 10);
+      }
+      // Even indices are the apexes, which is what cornerAngleUnits assumes.
+      expect(cornerAngleUnits(rhombus, 0)).toBe(apexAngleUnits(type));
+      expect(cornerAngleUnits(rhombus, 2)).toBe(apexAngleUnits(type));
+      // Opposite corners are equal and adjacent ones sum to a half turn.
+      expect(cornerAngleUnits(rhombus, 0) + cornerAngleUnits(rhombus, 1)).toBe(5);
+    }
+  });
+
+  it("winds counter-clockwise, so the corner bearings walk the vertex the right way", () => {
+    const corners = cornersAtVertex([rhombusAt(RhombusType.THICK, Vector2.ZERO, 0)], Vector2.ZERO);
+    expect(corners.length).toBe(1);
+    // biome-ignore lint/style/noNonNullAssertion: guarded by the length check
+    expect(corners[0]!.angle).toBe(apexAngleUnits(RhombusType.THICK));
+  });
+
+  it("centres the placement seed on the origin", () => {
+    expect(rhombusCentre(placementSeed()).magnitude).toBeCloseTo(0, 10);
+  });
+});
+
+describe("the vertex atlas under reflection", () => {
+  /**
+   * isPatchPlacementLegal reads an arc backwards when the new corner lands at its
+   * clockwise end, which is only sound if reversing a legal star leaves a legal
+   * star. That is a property of the atlas, not an assumption, so it is pinned
+   * here — if a future change to the atlas broke it, placements would start being
+   * accepted or refused depending on which side of the patch they were reached
+   * from, which is exactly the kind of bug nobody would trace back to here.
+   */
+  it("is closed under reversal", () => {
+    const atlas = vertexAtlas();
+    for (const star of atlas) {
+      const reversed = cyclicKey(star.split(",").map(Number).reverse());
+      expect(atlas.has(reversed)).toBe(true);
+    }
+  });
+});
+
+describe("arcs around a vertex", () => {
+  it("returns a single arc for every completely surrounded vertex", () => {
+    const rhombi = mergeIntoRhombi(generatePenroseTiling(4));
+    const vertices = tilingVertices(rhombi);
+    let complete = 0;
+
+    for (const vertex of vertices) {
+      const corners = cornersAtVertex(rhombi, vertex);
+      const total = corners.reduce((sum, corner) => sum + corner.angle, 0);
+      if (total !== 10) {
+        continue; // patch boundary, not a closed vertex
+      }
+      complete++;
+      // A closed vertex has no empty wedge to split on, so the whole star is one
+      // run. Getting two here would mean the abutment test had drifted, and every
+      // legality check at that vertex would silently be asked the wrong question.
+      expect(vertexArcs(corners).length).toBe(1);
+    }
+    expect(complete).toBeGreaterThan(10);
+  });
+
+  it("splits a partly-filled vertex where the empty wedge is", () => {
+    const seed = placementSeed();
+    // biome-ignore lint/style/noNonNullAssertion: a rhombus has four vertices
+    const arcs = vertexArcs(cornersAtVertex([seed], seed.vertices[0]!));
+    expect(arcs.length).toBe(1);
+    // biome-ignore lint/style/noNonNullAssertion: guarded by the length check
+    expect(arcs[0]!.length).toBe(1);
+  });
+
+  it("keeps two corners in one arc when they abut, and two when they do not", () => {
+    const seed = placementSeed();
+    // biome-ignore lint/style/noNonNullAssertion: a rhombus has four vertices
+    const shared = seed.vertices[1]!;
+    const neighbour = candidatePlacements([seed]).find((candidate) =>
+      candidate.rhombus.vertices.some((vertex) => vertex.distance(shared) < 1e-6),
+    );
+    expect(neighbour).toBeDefined();
+
+    if (neighbour !== undefined) {
+      // Two tiles sharing an edge share both its ends, so their corners there abut.
+      expect(vertexArcs(cornersAtVertex([seed, neighbour.rhombus], shared)).length).toBe(1);
+    }
+  });
+});
+
+describe("hand placement", () => {
+  it("offers a tile on both sides of every open edge, in both shapes", () => {
+    const seed = placementSeed();
+    expect(openEdges([seed]).length).toBe(4);
+    // 4 edges x 2 shapes x 2 sides, all distinct and none on top of the seed.
+    expect(candidatePlacements([seed]).length).toBe(16);
+  });
+
+  it("labels some of those candidates forbidden even though they fit", () => {
+    const candidates = candidatePlacements([placementSeed()]);
+    const forbidden = candidates.filter((candidate) => !candidate.legal);
+    // The screen's whole argument depends on this set being non-empty: the shapes
+    // fit flush and the matching rules refuse them anyway.
+    expect(forbidden.length).toBeGreaterThan(0);
+    expect(forbidden.length).toBeLessThan(candidates.length);
+  });
+
+  it("refuses a thick 108° corner against a thick 72° corner", () => {
+    // No atlas star puts a 3 next to a 2, so this pair can never be completed.
+    expect(isVertexStarLegal([3, 2])).toBe(false);
+    expect(isVertexStarLegal([2, 3])).toBe(false);
+  });
+
+  it("never offers a candidate that overlaps a tile already down", () => {
+    let patch: PenroseRhombus[] = [placementSeed()];
+    for (let step = 0; step < 8; step++) {
+      const candidates = candidatePlacements(patch);
+      for (const candidate of candidates) {
+        for (const placed of patch) {
+          expect(rhombusCentre(candidate.rhombus).distance(rhombusCentre(placed))).toBeGreaterThan(1e-6);
+        }
+      }
+      const legal = candidates.filter((candidate) => candidate.legal);
+      if (legal.length === 0) {
+        break;
+      }
+      // biome-ignore lint/style/noNonNullAssertion: guarded by the length check
+      patch = [...patch, legal[0]!.rhombus];
+    }
+    expect(patch.length).toBeGreaterThan(5);
+  });
+
+  /**
+   * The strongest check available: a tiling the inflation guarantees is correct
+   * must accept each of its own interior tiles as a legal placement back into the
+   * rest of itself. It exercises the awkward case too — the hole left by a removed
+   * interior tile puts the returning tile *between* two existing arcs at every one
+   * of its vertices, which is the branch the corner-ordering logic is written for.
+   */
+  it("accepts every interior tile of a real tiling back into the patch it came from", () => {
+    const rhombi = mergeIntoRhombi(generatePenroseTiling(4));
+    const interior = rhombi.filter((rhombus) => rhombusCentre(rhombus).magnitude < 0.45);
+    expect(interior.length).toBeGreaterThan(10);
+
+    for (const tile of interior) {
+      const rest = rhombi.filter((rhombus) => rhombus !== tile);
+      expect(isPatchPlacementLegal(rest, tile)).toBe(true);
+    }
+  });
+
+  it("offers the hole left by a removed tile back as a legal candidate", () => {
+    const rhombi = mergeIntoRhombi(generatePenroseTiling(4));
+    const interior = rhombi.filter((rhombus) => rhombusCentre(rhombus).magnitude < 0.3);
+    // biome-ignore lint/style/noNonNullAssertion: an inflated patch has interior tiles
+    const tile = interior[0]!;
+    const rest = rhombi.filter((rhombus) => rhombus !== tile);
+
+    const candidates = candidatePlacements(rest, edgeLengthAfter(4));
+    const match = candidates.find((candidate) => rhombusCentre(candidate.rhombus).distance(rhombusCentre(tile)) < 1e-6);
+    expect(match).toBeDefined();
+    expect(match?.legal).toBe(true);
+  });
+});

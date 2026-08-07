@@ -31,9 +31,10 @@ import { GOLDEN_RATIO } from "../../common/model/PenroseTiling.js";
 import { controlColumn, createCheckbox, createRadioGroup, createTextButton } from "../../common/view/ControlFactory.js";
 import { DerivedQuantitiesPanel } from "../../common/view/DerivedQuantitiesPanel.js";
 import { StringManager } from "../../i18n/StringManager.js";
-import { type AperiodicOrderModel, TilingMode } from "../model/AperiodicOrderModel.js";
+import { type AperiodicOrderModel, isRhombusMode, TilingMode } from "../model/AperiodicOrderModel.js";
 import { AperiodicOrderScreenSummaryContent } from "./AperiodicOrderScreenSummaryContent.js";
 import { DiffractionNode } from "./DiffractionNode.js";
+import { PlacementNode } from "./PlacementNode.js";
 import { TilingNode } from "./TilingNode.js";
 
 /** Height reserved at the bottom-right for the Reset All button. */
@@ -79,8 +80,19 @@ export class AperiodicOrderScreenView extends ScreenView {
     const diffractionSize = Math.min(available / 2 - PANEL_ROW_SPACING, 170);
 
     const tilingNode = new TilingNode(model, tilingSize);
+    // The hand-placement board shares the frame with the inflated tiling: only
+    // one of them is ever on screen, and sharing the frame keeps the play area a
+    // fixed size as the student switches between the two ways in.
+    const placementNode = new PlacementNode(model, tilingSize, {
+      accessibleName: a11y.controls.placementBoardStringProperty,
+    });
+    model.modeProperty.link((mode) => {
+      tilingNode.visible = mode !== TilingMode.PLACEMENT;
+      placementNode.visible = mode === TilingMode.PLACEMENT;
+    });
+
     const tilingFrame = new Node({
-      children: [tilingNode],
+      children: [tilingNode, placementNode],
       // The tiling is centred on its own local origin, so translate the frame
       // and clip to the square rather than fitting to bounds.
       clipArea: Rectangle.bounds(
@@ -143,6 +155,11 @@ export class AperiodicOrderScreenView extends ScreenView {
         label: screenStrings.periodicModeStringProperty,
         accessibleName: a11y.controls.modeSelectorStringProperty,
       },
+      {
+        value: TilingMode.PLACEMENT,
+        label: screenStrings.placementModeStringProperty,
+        accessibleName: a11y.controls.modeSelectorStringProperty,
+      },
     ]);
 
     const inflateButton = createTextButton(
@@ -165,6 +182,21 @@ export class AperiodicOrderScreenView extends ScreenView {
     model.inflationStepsProperty.link(updateInflateEnabled);
     model.hatStepsProperty.link(updateInflateEnabled);
 
+    const undoButton = createTextButton(
+      screenStrings.undoPlacementStringProperty,
+      () => model.undoPlacement(),
+      a11y.controls.undoPlacementStringProperty,
+    );
+    const clearButton = createTextButton(
+      screenStrings.clearPlacementsStringProperty,
+      () => model.clearPlacements(),
+      a11y.controls.clearPlacementsStringProperty,
+    );
+    const updateUndoEnabled = () => {
+      undoButton.enabled = model.canUndoPlacement();
+    };
+    model.placedRhombiProperty.link(updateUndoEnabled);
+
     const orientationsCheckbox = createCheckbox(
       screenStrings.highlightOrientationsStringProperty,
       model.highlightOrientationsProperty,
@@ -186,17 +218,24 @@ export class AperiodicOrderScreenView extends ScreenView {
       a11y.controls.compareLatticeStringProperty,
     );
 
-    // Each mode's overlays only make sense in that mode.
+    // Each mode's overlays only make sense in that mode. Substitution and hand
+    // placement are the two opposite ways of reaching the same tiling, so their
+    // buttons never appear together.
+    const substitutionRow = new HBox({ spacing: 4, children: [deflateButton, inflateButton] });
+    const placementRow = new HBox({ spacing: 4, children: [undoButton, clearButton] });
     model.modeProperty.link((mode) => {
       orientationsCheckbox.visible = mode === TilingMode.PENROSE;
       metatilesCheckbox.visible = mode === TilingMode.EINSTEIN;
       reflectedCheckbox.visible = mode === TilingMode.EINSTEIN;
+      substitutionRow.visible = mode !== TilingMode.PLACEMENT;
+      placementRow.visible = mode === TilingMode.PLACEMENT;
     });
 
     const controlsPanel = new CrystalLatticePanel(
       controlColumn([
         modeRadio,
-        new HBox({ spacing: 4, children: [deflateButton, inflateButton] }),
+        substitutionRow,
+        placementRow,
         orientationsCheckbox,
         metatilesCheckbox,
         reflectedCheckbox,
@@ -211,15 +250,15 @@ export class AperiodicOrderScreenView extends ScreenView {
         // stale count from a tiling that is not on screen.
         {
           label: screenStrings.thickTilesStringProperty,
-          value: penroseOnly(model, (counts) => `${counts.thick}`),
+          value: rhombiOnly(model, (counts) => `${counts.thick}`),
         },
         {
           label: screenStrings.thinTilesStringProperty,
-          value: penroseOnly(model, (counts) => `${counts.thin}`),
+          value: rhombiOnly(model, (counts) => `${counts.thin}`),
         },
         {
           label: screenStrings.tileRatioStringProperty,
-          value: penroseOnly(model, (counts) =>
+          value: rhombiOnly(model, (counts) =>
             Number.isFinite(counts.ratio) ? counts.ratio.toFixed(4) : NOT_APPLICABLE,
           ),
           valueFill: CrystalLatticeColors.successColorProperty,
@@ -229,6 +268,15 @@ export class AperiodicOrderScreenView extends ScreenView {
           // A mathematical constant, so a fixed StringProperty rather than a
           // locale-driven or model-driven one.
           value: new StringProperty(GOLDEN_RATIO.toFixed(4)),
+        },
+        {
+          label: screenStrings.placedTilesStringProperty,
+          value: placementOnly(model, () => `${model.placedRhombiProperty.value.length}`, model.placedRhombiProperty),
+        },
+        {
+          label: screenStrings.legalSlotsStringProperty,
+          value: placementOnly(model, () => `${model.legalSlotCountProperty.value}`, model.legalSlotCountProperty),
+          valueFill: CrystalLatticeColors.successColorProperty,
         },
         {
           label: screenStrings.hatCountStringProperty,
@@ -254,6 +302,40 @@ export class AperiodicOrderScreenView extends ScreenView {
       ],
       { titleProperty: commonStrings.quantitiesStringProperty },
     );
+
+    // ── Placement feedback ────────────────────────────────────────────────────
+    // One line, under the board where the refusal happened: what the outlines
+    // mean, or — when a drop has just been refused, or the board has run out of
+    // legal moves — what went wrong. A dead end is not a failure state to be
+    // hidden; it is the reason nobody grows large Penrose tilings this way.
+    const placementFeedback = new RichText(
+      new DerivedProperty(
+        [
+          model.placementRefusedProperty,
+          model.legalSlotCountProperty,
+          screenStrings.illegalPlacementStringProperty,
+          screenStrings.stuckNoteStringProperty,
+          screenStrings.placementHintStringProperty,
+        ],
+        (refused, legalSlots, illegal, stuck, hint) => (refused ? illegal : legalSlots === 0 ? stuck : hint),
+      ),
+      {
+        font: new PhetFont(READOUT_FONT_SIZE - 1),
+        fill: CrystalLatticeColors.textColorProperty,
+        lineWrap: tilingSize + diffractionSize,
+        left: SCREEN_VIEW_MARGIN,
+        bottom: this.layoutBounds.maxY - SCREEN_VIEW_MARGIN,
+      },
+    );
+    model.placementRefusedProperty.link(() => {
+      placementFeedback.fill = model.placementRefusedProperty.value
+        ? CrystalLatticeColors.warningColorProperty
+        : CrystalLatticeColors.textColorProperty;
+    });
+    model.modeProperty.link((mode) => {
+      placementFeedback.visible = mode === TilingMode.PLACEMENT;
+    });
+    this.addChild(placementFeedback);
 
     // ── The historical hook ───────────────────────────────────────────────────
     // Shechtman's measurement is what turns this screen from a geometry puzzle
@@ -296,8 +378,14 @@ export class AperiodicOrderScreenView extends ScreenView {
       new Node({
         pdomOrder: [
           modeRadio,
+          // The board's own pdomOrder names its layers, so the palette and the
+          // slots keep a stable place here even though the slots are rebuilt
+          // after every placement.
+          placementNode,
           deflateButton,
           inflateButton,
+          undoButton,
+          clearButton,
           orientationsCheckbox,
           metatilesCheckbox,
           reflectedCheckbox,
@@ -318,13 +406,30 @@ export class AperiodicOrderScreenView extends ScreenView {
 /** Shown in place of a count that belongs to a mode other than the current one. */
 const NOT_APPLICABLE = "—";
 
-/** A tile-count readout that blanks out unless the Penrose tiling is on screen. */
-function penroseOnly(
+/**
+ * A tile-count readout that blanks out unless rhombi are on screen. Both the
+ * inflated tiling and the hand-placed patch qualify: the thick:thin ratio means
+ * the same thing either way, and watching it sit far from φ on a patch of a dozen
+ * hand-laid tiles is worth as much as watching it converge on a patch of a
+ * thousand.
+ */
+function rhombiOnly(
   model: AperiodicOrderModel,
   format: (counts: ReturnType<typeof model.tileCountsProperty.get>) => string,
 ): TReadOnlyProperty<string> {
   return new DerivedProperty([model.modeProperty, model.tileCountsProperty], (mode, counts) =>
-    mode === TilingMode.PENROSE ? format(counts) : NOT_APPLICABLE,
+    isRhombusMode(mode) ? format(counts) : NOT_APPLICABLE,
+  );
+}
+
+/** A hand-placement readout that blanks out unless the board is on screen. */
+function placementOnly(
+  model: AperiodicOrderModel,
+  format: () => string,
+  dependency: TReadOnlyProperty<unknown>,
+): TReadOnlyProperty<string> {
+  return new DerivedProperty([model.modeProperty, dependency], (mode) =>
+    mode === TilingMode.PLACEMENT ? format() : NOT_APPLICABLE,
   );
 }
 

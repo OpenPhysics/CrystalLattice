@@ -107,6 +107,7 @@
     "penroseMode": "Penrose tiles",
     "einsteinMode": "Einstein tile",
     "periodicMode": "Periodic lattice",
+    "placementMode": "Place by hand",
     "inflate": "Inflate",
     "deflate": "Step back",
     "autoTile": "Auto-tile",
@@ -132,7 +133,17 @@
     "forbiddenNote": "Sharp peaks mean long-range order. Ten-fold symmetry is forbidden for any periodic lattice — only 1-, 2-, 3-, 4- and 6-fold axes are compatible with translational periodicity.",
     "shechtmanNote": "This is what Shechtman measured in rapidly cooled Al–Mn in 1982, and what the 2011 Nobel Prize in Chemistry was awarded for.",
     "hatSpectreNote": "The hat tiles the plane only if reflected copies are allowed. The spectre, found months later, needs only rotations of one chiral tile.",
-    "tooManyPoints": "Too many points for a live transform — step back to see the pattern."
+    "tooManyPoints": "Too many points for a live transform — step back to see the pattern.",
+    "palette": "Drag a tile onto a slot",
+    "thickTile": "Thick",
+    "thinTile": "Thin",
+    "undoPlacement": "Undo",
+    "clearPlacements": "Clear",
+    "placedTiles": "Tiles placed",
+    "legalSlots": "Legal slots",
+    "placementHint": "Green outlines are legal. Red ones fit the shapes perfectly and are still forbidden — that is the matching rule at work.",
+    "illegalPlacement": "Refused: that corner arrangement never occurs in a Penrose tiling.",
+    "stuckNote": "No legal slot left. This is the dead end that makes inflation, not matching rules, the way to grow a big tiling."
   },
   "a11y": {
     "lattices2D": {
@@ -227,8 +238,16 @@
         "showMetatiles": "Colour each hat by the metatile cluster it belongs to",
         "showReflected": "Mark the reflected copies of the hat",
         "compareLattice": "Show a periodic lattice's diffraction pattern alongside",
-        "diffractionView": "Computed diffraction pattern of the current tiling"
-      }
+        "diffractionView": "Computed diffraction pattern of the current tiling",
+        "placementBoard": "Board of hand-placed Penrose tiles, with an outlined slot at every place a next tile could go",
+        "paletteThick": "Thick rhombus; drag it onto a slot, or select it and activate a slot",
+        "paletteThin": "Thin rhombus; drag it onto a slot, or select it and activate a slot",
+        "legalSlot": "Legal slot; activate to place the selected tile here",
+        "illegalSlot": "Forbidden slot; the shapes fit but the matching rules do not allow this corner",
+        "undoPlacement": "Take back the tile placed most recently",
+        "clearPlacements": "Clear every hand-placed tile and start again from one"
+      },
+      "currentDetailsPlacement": "You have placed {{tiles}} tiles by hand: {{thick}} thick and {{thin}} thin. There are {{legal}} legal slots and {{forbidden}} forbidden ones on the board."
     }
   },
   "preferences": {

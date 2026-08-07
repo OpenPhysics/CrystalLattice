@@ -29,14 +29,14 @@ a view or a screen model is the mistake this codebase is arranged to prevent.
 | `src/CrystalLatticeNamespace.ts` | Namespace for color property names |
 | `src/i18n/StringManager.ts` | Singleton localized string accessor; per-screen getters |
 | **Pure model** | **no Scenery imports, fully unit-tested** |
-| `src/common/model/Projection3D.ts` | Orthographic yaw/pitch camera + depth sorting |
+| `src/common/model/Projection3D.ts` | Orthographic yaw/pitch camera, depth sorting, and `unproject` for 3D drag handles |
 | `src/common/model/Lattice2D.ts` | 2D lattice generation, Bravais classification, Wigner–Seitz |
 | `src/common/model/CubicCell.ts` | Cubic cell contents, sharing fractions, APF, theoretical density |
 | `src/common/model/ReferenceElements.ts` | Typed access to `elements.json` |
 | `src/common/model/ClosePacking.ts` | Layer stacking, Jagodzinski symbols, c/a dependence |
 | `src/common/model/MillerIndices.ts` | Exact rational intercept → index pipeline, families, planar density |
 | `src/common/model/Affine2D.ts` | Flat 2D affine transforms for the tiling generators |
-| `src/common/model/PenroseTiling.ts` | Robinson-triangle inflation + derived vertex atlas |
+| `src/common/model/PenroseTiling.ts` | Robinson-triangle inflation, derived vertex atlas, hand-placement candidates |
 | `src/common/model/EinsteinTiling.ts` | Hat metatile substitution (ported from hatviz), spectre outline |
 | `src/common/model/DiffractionPattern.ts` | Direct-sum DFT, peak finding, symmetry measurement |
 | **Shared view** | |
@@ -45,6 +45,7 @@ a view or a screen model is the mistake this codebase is arranged to prevent.
 | `src/common/view/ControlFactory.ts` | Themed sliders / check boxes / combo boxes / buttons |
 | `src/common/view/DerivedQuantitiesPanel.ts` | The live label/value readout every screen carries |
 | `src/common/CrystalLatticePanel.ts` | Pre-themed `Panel` wrapper |
+| `src/common/CrystalLatticeScreenIcons.ts` | Home/navigation icons, drawn from each screen's own geometry |
 | `src/common/CrystalLatticeButtonOptions.ts` | Flat button-appearance bundles + combo-box options |
 | **Screens** | each has `model/`, `view/`, a `*Screen.ts`, a summary and a keyboard-help node |
 | `src/lattices-2d/` | 2D Lattices |
@@ -82,6 +83,29 @@ peak search. And a patch's *outline* imprints on its transform, so `circularSubs
 `measureSymmetryOrder`'s tolerance is tied to the k-grid step — loosening it lets a spurious 11-fold
 match beat the genuine 10-fold one.
 
+### Screen 4's intercept handles snap to unit fractions
+
+The plane (hkl) nearest the origin cuts the a axis at exactly 1/h, so the only intercepts a drawable
+plane can have are ±1/n up to `MAX_MILLER_INDEX`, plus "parallel". The handles have a stop at each,
+and a free continuous track would let two innocuous drags produce (9 8 0). A consequence: **a drag can
+only ever produce a reduced triple.** (200) is unreachable by dragging, because an intercept of 1/2
+with the other axes parallel reduces to (100) — the common factor is not in the intercepts. That is
+why (200) stays a preset button with a note beside it.
+
+The handles live in a layer *outside* `Projected3DNode`'s rebuilt content. A handle created inside
+`rebuild()` would be replaced on the first camera frame and the drag would die.
+
+### Screen 5's placement candidates are labelled, not filtered
+
+`candidatePlacements` offers both tile shapes on both sides of every open edge and drops only what
+would physically overlap; `isPatchPlacementLegal` then marks each one legal or not. The illegal ones
+are drawn. They fit flush and are refused anyway, which is the entire content of "matching rules" —
+hiding them would leave a student thinking the shapes simply do not fit.
+
+`isPatchPlacementLegal` reverses a vertex arc when the new corner lands at its clockwise end. That is
+sound only because the vertex atlas is closed under reflection, which `tests/AperiodicTiling.test.ts`
+pins directly. Getting stuck (no legal slot left) is a reachable, reported state, not a bug.
+
 ### The hat port is load-bearing and non-obvious
 
 `EinsteinTiling.ts` carries specific vertex coordinates and a 29-entry rule table from Kaplan's
@@ -117,7 +141,7 @@ A11y strings live under the `a11y` key per screen in each locale JSON, reached t
 | `tests/CubicCell.test.ts` | Atom sharing, APF, theoretical density against textbook values |
 | `tests/ClosePacking.test.ts` | Stacking classification, HCP/FCC packing equality, c/a dependence |
 | `tests/MillerIndices.test.ts` | The four-stage pipeline, the (200) trap, planar density |
-| `tests/AperiodicTiling.test.ts` | Penrose ratios → φ, hat congruence and φ⁴ reflection ratio |
+| `tests/AperiodicTiling.test.ts` | Penrose ratios → φ, hat congruence and φ⁴ reflection ratio, hand-placement legality |
 | `tests/DiffractionPattern.test.ts` | 4-fold square, 6-fold hexagonal, 10-fold Penrose |
 | `tests/memory-leak.test.ts` | WeakRef + `forceGC` regression across all five screen models |
 | `tests/fuzz/fuzz.spec.ts` | Optional Playwright fuzz smoke via joist `?fuzz` |
@@ -145,16 +169,6 @@ npm run lint && npm run check && npm run build && npm test
 | `npm test` | Vitest unit tests |
 | `npm run test:fuzz` | Playwright fuzz smoke |
 | `npm run icons` | Regenerate PWA icons from `public/icons/icon.svg` |
-
-## Known gaps
-
-Two features from the original spec are specified and partly built but not shipped:
-
-- **Screen 5's hand-placement mode.** The matching-rule machinery (`vertexAtlas`, `isVertexStarLegal`,
-  `isPlacementLegal`) is implemented and tested; the drag-and-drop UI on top of it is not.
-- **Screen 4's draggable intercept handles.** `MillerIndicesModel.setIntercept` and
-  `setDirectionFromVector` are implemented against the exact-rational pipeline; the screen currently
-  reaches them only through the worked-example presets.
 
 ## PWA
 
