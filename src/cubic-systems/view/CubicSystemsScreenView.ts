@@ -10,7 +10,8 @@
  * paper is on screen next to the picture it comes from.
  */
 
-import { DerivedProperty, Property, StringProperty } from "scenerystack/axon";
+import { DerivedProperty, PatternStringProperty, Property, StringProperty } from "scenerystack/axon";
+import { toFixed } from "scenerystack/dot";
 import { type EmptySelfOptions, optionize } from "scenerystack/phet-core";
 import { Node, Rectangle, VBox } from "scenerystack/scenery";
 import { ResetAllButton } from "scenerystack/scenery-phet";
@@ -98,14 +99,14 @@ export class CubicSystemsScreenView extends ScreenView {
       model.edgeLengthProperty,
       CELL_EDGE_RANGE,
       a11y.controls.cellEdgeSliderStringProperty,
-      { decimalPlaces: 3, units: "nm", delta: 0.005 },
+      { decimalPlaces: 3, unitsPattern: commonStrings.unitsNmStringProperty, delta: 0.005 },
     );
     const radiusSlider = createSlider(
       screenStrings.atomicRadiusStringProperty,
       model.atomRadiusProperty,
       ATOM_RADIUS_RANGE,
       a11y.controls.atomicRadiusSliderStringProperty,
-      { decimalPlaces: 3, units: "nm", delta: 0.002 },
+      { decimalPlaces: 3, unitsPattern: commonStrings.unitsNmStringProperty, delta: 0.002 },
     );
     const snapButton = createTextButton(
       screenStrings.snapToTouchingStringProperty,
@@ -169,6 +170,17 @@ export class CubicSystemsScreenView extends ScreenView {
       controlColumn([createHeading(screenStrings.identifyElementStringProperty), elementComboBox]),
     );
 
+    const computedDensityFormattedProperty = new PatternStringProperty(commonStrings.valueGPerCm3StringProperty, {
+      value: new DerivedProperty([model.computedDensityProperty], (density) =>
+        density === null ? "" : toFixed(density, 2),
+      ),
+    });
+    const measuredDensityFormattedProperty = new PatternStringProperty(commonStrings.valueGPerCm3StringProperty, {
+      value: new DerivedProperty([model.selectedElementProperty], (element) =>
+        element === null ? "" : toFixed(element.measuredDensity, 2),
+      ),
+    });
+
     // ── Live quantities ───────────────────────────────────────────────────────
     const quantitiesPanel = new DerivedQuantitiesPanel(
       [
@@ -186,11 +198,13 @@ export class CubicSystemsScreenView extends ScreenView {
         },
         {
           label: screenStrings.touchingRadiusStringProperty,
-          value: new DerivedProperty([model.touchingRadiusProperty], (radius) => `${radius.toFixed(4)} nm`),
+          value: new PatternStringProperty(commonStrings.valueNmStringProperty, {
+            value: new DerivedProperty([model.touchingRadiusProperty], (radius) => toFixed(radius, 4)),
+          }),
         },
         {
           label: screenStrings.packingFactorStringProperty,
-          value: new DerivedProperty([model.packingFactorProperty], (apf) => apf.toFixed(3)),
+          value: new DerivedProperty([model.packingFactorProperty], (apf) => toFixed(apf, 3)),
           // Turning the APF red the moment the spheres overlap is the cheapest
           // way to say "this number no longer means what you think".
           valueFill: new DerivedProperty(
@@ -205,15 +219,15 @@ export class CubicSystemsScreenView extends ScreenView {
         {
           label: screenStrings.computedDensityStringProperty,
           value: new DerivedProperty(
-            [model.computedDensityProperty, commonStrings.noneStringProperty],
-            (density, none) => (density === null ? none : `${density.toFixed(2)} g/cm³`),
+            [model.computedDensityProperty, computedDensityFormattedProperty, commonStrings.noneStringProperty],
+            (density, formatted, none) => (density === null ? none : formatted),
           ),
         },
         {
           label: screenStrings.measuredDensityStringProperty,
           value: new DerivedProperty(
-            [model.selectedElementProperty, commonStrings.noneStringProperty],
-            (element, none) => (element === null ? none : `${element.measuredDensity.toFixed(2)} g/cm³`),
+            [model.selectedElementProperty, measuredDensityFormattedProperty, commonStrings.noneStringProperty],
+            (element, formatted, none) => (element === null ? none : formatted),
           ),
         },
         {

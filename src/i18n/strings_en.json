@@ -15,7 +15,15 @@
     "coordinationNumber": "Coordination number",
     "atomsPerCell": "Atoms per cell",
     "packingFraction": "Packing fraction",
-    "none": "none"
+    "none": "none",
+    "infinity": "∞",
+    "notApplicable": "—",
+    "unitsNm": "{{value}} nm",
+    "unitsDegrees": "{{value}}°",
+    "valueNm": "{{value}} nm",
+    "valueNmSquared": "{{value}} nm²",
+    "valuePerNmSquared": "{{value}} /nm²",
+    "valueGPerCm3": "{{value}} g/cm³"
   },
   "lattices2D": {
     "vectorA1": "|a₁|",
@@ -181,14 +189,14 @@
         "snapToTouching": "Set the atomic radius to the value at which spheres just touch",
         "clipPlane": "Cut away the front of the cell to reveal the interior atoms",
         "showSharing": "Show what fraction of each atom belongs to this cell",
-        "cellRotation": "Cubic unit cell; drag to rotate it",
+        "cellRotation": "Cubic unit cell; drag or use arrow keys to rotate it",
         "elementSelector": "Choose a real cubic metal to compare against"
       }
     },
     "closePacking": {
       "screenSummary": {
         "playArea": "The play area shows close-packed layers of spheres stacked on top of one another, drawn in three dimensions. Drag the stack to rotate it.",
-        "controlArea": "The control area has a stacking sequence selector for hexagonal and cubic close packing, a slider for the number of layers, a slider for the axial ratio, a field for typing a custom sequence, and a Reset All button.",
+        "controlArea": "The control area has a stacking sequence selector for hexagonal and cubic close packing, buttons that load instructive custom sequences, a slider for the number of layers, a slider for the axial ratio, and a Reset All button.",
         "interactionHint": "Switch between the A-B-A-B and A-B-C-A-B-C sequences and notice that the packing fraction does not change, even though the structures look completely different."
       },
       "currentDetails": "The stack is {{sequence}}, which is {{type}}. It has {{layers}} layers at an axial ratio of {{ratio}}, giving a coordination number of {{coordination}} and a packing fraction of {{packing}}.",
@@ -196,15 +204,16 @@
         "stackingSelector": "Choose the stacking sequence",
         "layerCountSlider": "Number of close-packed layers",
         "cOverASlider": "Axial ratio c over a",
-        "sequenceInput": "Type a stacking sequence using the letters A, B and C",
-        "stackRotation": "Stack of close-packed layers; drag to rotate it",
-        "showLabels": "Label each layer with its position A, B or C"
+        "sequenceInput": "Load an instructive custom stacking sequence",
+        "stackRotation": "Stack of close-packed layers; drag or use arrow keys to rotate it",
+        "showLabels": "Label each layer with its position A, B or C",
+        "idealRatio": "Set the axial ratio to the ideal hard-sphere value"
       }
     },
     "millerIndices": {
       "screenSummary": {
         "playArea": "The play area shows a cubic unit cell containing either a crystallographic plane with draggable intercept handles on the three axes, or a draggable direction vector from the cell origin. Drag the cell to rotate it.",
-        "controlArea": "The control area switches between plane and direction mode, shows the step-by-step derivation of the indices, offers preset worked examples, and has a field for entering indices directly plus a Reset All button.",
+        "controlArea": "The control area switches between plane and direction mode, shows the step-by-step derivation of the indices, offers preset worked examples, and has a Reset All button.",
         "interactionHint": "Drag an intercept handle and watch the derivation panel turn intercepts into reciprocals and then into whole-number indices."
       },
       "currentDetails": "The current plane is {{plane}} with an interplanar spacing of {{spacing}} nanometres. Its equivalent family has {{family}} members.",
@@ -214,11 +223,10 @@
         "interceptA": "Where the plane crosses the a axis",
         "interceptB": "Where the plane crosses the b axis",
         "interceptC": "Where the plane crosses the c axis",
-        "indexInput": "Type a set of three indices",
         "showNormal": "Show the direction perpendicular to the current plane",
         "showFamily": "Show every plane equivalent to this one under cubic symmetry",
         "presetButton": "Load a worked example",
-        "cellRotation": "Cubic unit cell; drag to rotate it",
+        "cellRotation": "Cubic unit cell; drag or use arrow keys to rotate it",
         "directionHandle": "Tip of the direction vector; drag to change it"
       }
     },

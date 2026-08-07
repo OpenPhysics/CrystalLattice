@@ -9,13 +9,18 @@
  * Model coordinates are nanometres with +y up; view coordinates are pixels with
  * +y down, so a single ModelViewTransform2 handles the flip and the scale, and
  * every geometry function stays in model units.
+ *
+ * The handles live in a layer outside the rebuilt vector arrows. Recreating a
+ * handle inside `rebuild()` would replace it on every drag sample and kill the
+ * pointer / keyboard gesture mid-stroke (the same trap Screen 4 documents for
+ * Miller intercept handles).
  */
 
-import { Multilink, type UnknownMultilink } from "scenerystack/axon";
+import { Multilink, type TReadOnlyProperty, type UnknownMultilink } from "scenerystack/axon";
 import { Vector2 } from "scenerystack/dot";
 import { Shape } from "scenerystack/kite";
 import { ModelViewTransform2 } from "scenerystack/phetcommon";
-import { Circle, DragListener, Node, type NodeOptions, Path } from "scenerystack/scenery";
+import { Circle, DragListener, KeyboardListener, Node, type NodeOptions, Path } from "scenerystack/scenery";
 import { ArrowNode } from "scenerystack/scenery-phet";
 import CrystalLatticeColors from "../../CrystalLatticeColors.js";
 import { DEFAULT_LATTICE_VECTOR_NM, LATTICE_2D_RANGE, OUTLINE_LINE_WIDTH } from "../../CrystalLatticeConstants.js";
@@ -42,6 +47,15 @@ const ORIGIN_RADIUS = 9;
 /** Radius of a draggable vector handle, sized for a comfortable touch target. */
 const HANDLE_RADIUS = 11;
 
+/** Keyboard step for |a₁| / |a₂|, in nanometres. */
+const VECTOR_KEY_STEP_NM = 0.01;
+
+/** Keyboard step for γ, in degrees. */
+const GAMMA_KEY_STEP_DEG = 1;
+
+/** View-pixel nudge applied to a₂'s tip under the arrow keys. */
+const A2_KEY_STEP_PX = 8;
+
 export type Lattice2DNodeOptions = NodeOptions;
 
 export class Lattice2DNode extends Node {
@@ -51,15 +65,27 @@ export class Lattice2DNode extends Node {
   private readonly overlayLayer = new Node();
   private readonly pointLayer = new Node();
   private readonly vectorLayer = new Node();
+  /** Persistent handles — never children of a rebuilt layer. */
+  private readonly handleLayer = new Node();
+  private readonly handleA1: Circle;
+  private readonly handleA2: Circle;
 
   private readonly multilink: UnknownMultilink;
 
   /**
    * @param model - the screen model
    * @param viewSize - the square play-area size in pixels
+   * @param handleA1Name - accessible name for the first-vector tip
+   * @param handleA2Name - accessible name for the second-vector tip
    * @param providedOptions
    */
-  public constructor(model: Lattices2DModel, viewSize: number, providedOptions?: Lattice2DNodeOptions) {
+  public constructor(
+    model: Lattices2DModel,
+    viewSize: number,
+    handleA1Name: TReadOnlyProperty<string>,
+    handleA2Name: TReadOnlyProperty<string>,
+    providedOptions?: Lattice2DNodeOptions,
+  ) {
     super(providedOptions);
     this.model = model;
 
@@ -75,9 +101,14 @@ export class Lattice2DNode extends Node {
       scale,
     );
 
+    this.handleA1 = this.createHandle(CrystalLatticeColors.vectorAColorProperty, handleA1Name, true);
+    this.handleA2 = this.createHandle(CrystalLatticeColors.vectorBColorProperty, handleA2Name, false);
+    this.handleLayer.children = [this.handleA1, this.handleA2];
+
     this.addChild(this.overlayLayer);
     this.addChild(this.pointLayer);
     this.addChild(this.vectorLayer);
+    this.addChild(this.handleLayer);
 
     this.multilink = Multilink.multilink(
       [
@@ -89,6 +120,11 @@ export class Lattice2DNode extends Node {
       ],
       () => this.rebuild(),
     );
+  }
+
+  /** The two tip handles, for ScreenView PDOM order. */
+  public getHandles(): readonly Node[] {
+    return [this.handleA1, this.handleA2];
   }
 
   /** Rebuilds every layer for the current parameters and overlay toggles. */
@@ -191,7 +227,7 @@ export class Lattice2DNode extends Node {
     this.pointLayer.children = children;
   }
 
-  /** The two primitive vectors, each with a draggable handle at its tip. */
+  /** The two primitive-vector arrows; handle positions update in place. */
   private rebuildVectors(parameters: Lattice2DParameters): void {
     const origin = this.modelViewTransform.modelToViewPosition(Vector2.ZERO);
     const tip1 = this.modelViewTransform.modelToViewPosition(primitiveVector1(parameters));
@@ -212,9 +248,10 @@ export class Lattice2DNode extends Node {
         headWidth: 12,
         tailWidth: 3,
       }),
-      this.createHandle(tip1, CrystalLatticeColors.vectorAColorProperty, true),
-      this.createHandle(tip2, CrystalLatticeColors.vectorBColorProperty, false),
     ];
+
+    this.handleA1.center = tip1;
+    this.handleA2.center = tip2;
   }
 
   /**
@@ -226,17 +263,16 @@ export class Lattice2DNode extends Node {
    * both |a₂| and γ, which is where the interesting exploration lives.
    */
   private createHandle(
-    center: Vector2,
     fill: (typeof CrystalLatticeColors)["vectorAColorProperty"],
+    accessibleName: TReadOnlyProperty<string>,
     isFirstVector: boolean,
-  ): Node {
+  ): Circle {
     const handle = new Circle(HANDLE_RADIUS, {
-      center,
       fill,
       stroke: CrystalLatticeColors.atomStrokeColorProperty,
       lineWidth: 2,
       cursor: "pointer",
-      // A plain Node needs these to be reachable by keyboard at all.
+      accessibleName,
       tagName: "div",
       focusable: true,
     });
@@ -245,19 +281,47 @@ export class Lattice2DNode extends Node {
       new DragListener({
         applyOffset: false,
         drag: (event) => {
-          const modelPoint = this.modelViewTransform.viewToModelPosition(this.globalToLocalPoint(event.pointer.point));
+          this.applyTipFromView(this.globalToLocalPoint(event.pointer.point), isFirstVector);
+        },
+      }),
+    );
+
+    handle.addInputListener(
+      new KeyboardListener({
+        keys: ["arrowLeft", "arrowRight", "arrowUp", "arrowDown"],
+        fire: (_event, keysPressed) => {
           if (isFirstVector) {
-            this.model.a1Property.value = LATTICE_VECTOR_RANGE.constrainValue(Math.abs(modelPoint.x));
+            const delta =
+              keysPressed === "arrowRight" || keysPressed === "arrowUp" ? VECTOR_KEY_STEP_NM : -VECTOR_KEY_STEP_NM;
+            this.model.a1Property.value = LATTICE_VECTOR_RANGE.constrainValue(this.model.a1Property.value + delta);
+          } else if (keysPressed === "arrowLeft" || keysPressed === "arrowRight") {
+            // Horizontal keys change γ around the origin; vertical keys change |a₂|.
+            const delta = keysPressed === "arrowRight" ? GAMMA_KEY_STEP_DEG : -GAMMA_KEY_STEP_DEG;
+            this.model.gammaDegreesProperty.value = GAMMA_RANGE.constrainValue(
+              this.model.gammaDegreesProperty.value + delta,
+            );
           } else {
-            this.model.a2Property.value = LATTICE_VECTOR_RANGE.constrainValue(modelPoint.magnitude);
-            const degrees = (Math.atan2(modelPoint.y, modelPoint.x) * 180) / Math.PI;
-            this.model.gammaDegreesProperty.value = GAMMA_RANGE.constrainValue(degrees);
+            const tip = this.handleA2.center.copy();
+            tip.y += keysPressed === "arrowDown" ? A2_KEY_STEP_PX : -A2_KEY_STEP_PX;
+            this.applyTipFromView(tip, false);
           }
         },
       }),
     );
 
     return handle;
+  }
+
+  /** Writes a tip's view position back into the corresponding model Properties. */
+  private applyTipFromView(localPoint: Vector2, isFirstVector: boolean): void {
+    const modelPoint = this.modelViewTransform.viewToModelPosition(localPoint);
+    if (isFirstVector) {
+      this.model.a1Property.value = LATTICE_VECTOR_RANGE.constrainValue(Math.abs(modelPoint.x));
+    } else {
+      this.model.a2Property.value = LATTICE_VECTOR_RANGE.constrainValue(modelPoint.magnitude);
+      const degrees = (Math.atan2(modelPoint.y, modelPoint.x) * 180) / Math.PI;
+      this.model.gammaDegreesProperty.value = GAMMA_RANGE.constrainValue(degrees);
+    }
   }
 
   /** A closed Kite Shape through model-space points, mapped to view space. */

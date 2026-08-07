@@ -15,8 +15,11 @@
 
 import { Property, type TReadOnlyProperty } from "scenerystack/axon";
 import type { Vector3 } from "scenerystack/dot";
-import { DragListener, Node, type NodeOptions } from "scenerystack/scenery";
+import { DragListener, KeyboardListener, Node, type NodeOptions } from "scenerystack/scenery";
 import { DEFAULT_PITCH, DEFAULT_YAW, Projection3D } from "../model/Projection3D.js";
+
+/** Pointer-drag pixels of orbit per arrow-key press (matches a short flick). */
+const ORBIT_KEY_DELTA = 20;
 
 export type Projected3DNodeOptions = NodeOptions;
 
@@ -63,6 +66,20 @@ export abstract class Projected3DNode extends Node {
         drag: (_event, listener) => {
           const delta = listener.modelDelta;
           this.cameraProperty.value = this.cameraProperty.value.rotatedBy(delta.x, delta.y);
+        },
+      }),
+    );
+
+    // Arrow keys orbit the same way: focusable callers (ScreenViews set
+    // tagName/focusable/accessibleName) must be operable without a pointer.
+    this.addInputListener(
+      new KeyboardListener({
+        keys: ["arrowLeft", "arrowRight", "arrowUp", "arrowDown"],
+        fire: (_event, keysPressed) => {
+          const dx =
+            keysPressed === "arrowLeft" ? -ORBIT_KEY_DELTA : keysPressed === "arrowRight" ? ORBIT_KEY_DELTA : 0;
+          const dy = keysPressed === "arrowUp" ? -ORBIT_KEY_DELTA : keysPressed === "arrowDown" ? ORBIT_KEY_DELTA : 0;
+          this.cameraProperty.value = this.cameraProperty.value.rotatedBy(dx, dy);
         },
       }),
     );

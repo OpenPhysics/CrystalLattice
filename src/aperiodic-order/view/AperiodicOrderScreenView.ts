@@ -13,6 +13,7 @@
  */
 
 import { DerivedProperty, StringProperty, type TReadOnlyProperty } from "scenerystack/axon";
+import { toFixed } from "scenerystack/dot";
 import { type EmptySelfOptions, optionize } from "scenerystack/phet-core";
 import { HBox, Node, Rectangle, RichText, Text, VBox } from "scenerystack/scenery";
 import { PhetFont, ResetAllButton } from "scenerystack/scenery-phet";
@@ -31,6 +32,7 @@ import { GOLDEN_RATIO } from "../../common/model/PenroseTiling.js";
 import { controlColumn, createCheckbox, createRadioGroup, createTextButton } from "../../common/view/ControlFactory.js";
 import { DerivedQuantitiesPanel } from "../../common/view/DerivedQuantitiesPanel.js";
 import { StringManager } from "../../i18n/StringManager.js";
+import { getCrystalLatticePreferences } from "../../preferences/CrystalLatticePreferencesModel.js";
 import { type AperiodicOrderModel, isRhombusMode, TilingMode } from "../model/AperiodicOrderModel.js";
 import { AperiodicOrderScreenSummaryContent } from "./AperiodicOrderScreenSummaryContent.js";
 import { DiffractionNode } from "./DiffractionNode.js";
@@ -54,6 +56,8 @@ export class AperiodicOrderScreenView extends ScreenView {
     const screenStrings = strings.getAperiodicOrderStrings();
     const commonStrings = strings.getCommonStrings();
     const a11y = strings.getAperiodicOrderA11yStrings();
+    const advancedVisibleProperty = getCrystalLatticePreferences().showAdvancedReadoutsProperty;
+    const notApplicableProperty = commonStrings.notApplicableStringProperty;
 
     this.addChild(
       new Rectangle(0, 0, this.layoutBounds.width, this.layoutBounds.height, {
@@ -112,7 +116,10 @@ export class AperiodicOrderScreenView extends ScreenView {
       accessibleName: a11y.controls.diffractionViewStringProperty,
       tagName: "div",
     });
-    const comparisonNode = new DiffractionNode(model.comparisonDiffractionProperty, diffractionSize);
+    const comparisonNode = new DiffractionNode(model.comparisonDiffractionProperty, diffractionSize, {
+      accessibleName: a11y.controls.compareLatticeStringProperty,
+      tagName: "div",
+    });
     model.compareLatticeProperty.link((compare) => {
       comparisonNode.visible = compare;
     });
@@ -143,22 +150,22 @@ export class AperiodicOrderScreenView extends ScreenView {
       {
         value: TilingMode.PENROSE,
         label: screenStrings.penroseModeStringProperty,
-        accessibleName: a11y.controls.modeSelectorStringProperty,
+        accessibleName: screenStrings.penroseModeStringProperty,
       },
       {
         value: TilingMode.EINSTEIN,
         label: screenStrings.einsteinModeStringProperty,
-        accessibleName: a11y.controls.modeSelectorStringProperty,
+        accessibleName: screenStrings.einsteinModeStringProperty,
       },
       {
         value: TilingMode.PERIODIC,
         label: screenStrings.periodicModeStringProperty,
-        accessibleName: a11y.controls.modeSelectorStringProperty,
+        accessibleName: screenStrings.periodicModeStringProperty,
       },
       {
         value: TilingMode.PLACEMENT,
         label: screenStrings.placementModeStringProperty,
-        accessibleName: a11y.controls.modeSelectorStringProperty,
+        accessibleName: screenStrings.placementModeStringProperty,
       },
     ]);
 
@@ -250,16 +257,18 @@ export class AperiodicOrderScreenView extends ScreenView {
         // stale count from a tiling that is not on screen.
         {
           label: screenStrings.thickTilesStringProperty,
-          value: rhombiOnly(model, (counts) => `${counts.thick}`),
+          value: rhombiOnly(model, (counts) => `${counts.thick}`, notApplicableProperty),
         },
         {
           label: screenStrings.thinTilesStringProperty,
-          value: rhombiOnly(model, (counts) => `${counts.thin}`),
+          value: rhombiOnly(model, (counts) => `${counts.thin}`, notApplicableProperty),
         },
         {
           label: screenStrings.tileRatioStringProperty,
-          value: rhombiOnly(model, (counts) =>
-            Number.isFinite(counts.ratio) ? counts.ratio.toFixed(4) : NOT_APPLICABLE,
+          value: new DerivedProperty(
+            [model.modeProperty, model.tileCountsProperty, notApplicableProperty],
+            (mode, counts, na) =>
+              isRhombusMode(mode) ? (Number.isFinite(counts.ratio) ? toFixed(counts.ratio, 4) : na) : na,
           ),
           valueFill: CrystalLatticeColors.successColorProperty,
         },
@@ -267,24 +276,34 @@ export class AperiodicOrderScreenView extends ScreenView {
           label: screenStrings.goldenRatioStringProperty,
           // A mathematical constant, so a fixed StringProperty rather than a
           // locale-driven or model-driven one.
-          value: new StringProperty(GOLDEN_RATIO.toFixed(4)),
+          value: new StringProperty(toFixed(GOLDEN_RATIO, 4)),
         },
         {
           label: screenStrings.placedTilesStringProperty,
-          value: placementOnly(model, () => `${model.placedRhombiProperty.value.length}`, model.placedRhombiProperty),
+          value: placementOnly(
+            model,
+            () => `${model.placedRhombiProperty.value.length}`,
+            model.placedRhombiProperty,
+            notApplicableProperty,
+          ),
         },
         {
           label: screenStrings.legalSlotsStringProperty,
-          value: placementOnly(model, () => `${model.legalSlotCountProperty.value}`, model.legalSlotCountProperty),
+          value: placementOnly(
+            model,
+            () => `${model.legalSlotCountProperty.value}`,
+            model.legalSlotCountProperty,
+            notApplicableProperty,
+          ),
           valueFill: CrystalLatticeColors.successColorProperty,
         },
         {
           label: screenStrings.hatCountStringProperty,
-          value: einsteinOnly(model, (counts) => `${counts.total}`),
+          value: einsteinOnly(model, (counts) => `${counts.total}`, notApplicableProperty),
         },
         {
           label: screenStrings.reflectedCountStringProperty,
-          value: einsteinOnly(model, (counts) => `${counts.reflected}`),
+          value: einsteinOnly(model, (counts) => `${counts.reflected}`, notApplicableProperty),
         },
         {
           label: screenStrings.pointCountStringProperty,
@@ -293,6 +312,7 @@ export class AperiodicOrderScreenView extends ScreenView {
         {
           label: screenStrings.peakCountStringProperty,
           value: new DerivedProperty([model.peakCountProperty], (count) => `${count}`),
+          visibleProperty: advancedVisibleProperty,
         },
         {
           label: screenStrings.symmetryOrderStringProperty,
@@ -403,9 +423,6 @@ export class AperiodicOrderScreenView extends ScreenView {
   }
 }
 
-/** Shown in place of a count that belongs to a mode other than the current one. */
-const NOT_APPLICABLE = "—";
-
 /**
  * A tile-count readout that blanks out unless rhombi are on screen. Both the
  * inflated tiling and the hand-placed patch qualify: the thick:thin ratio means
@@ -416,9 +433,10 @@ const NOT_APPLICABLE = "—";
 function rhombiOnly(
   model: AperiodicOrderModel,
   format: (counts: ReturnType<typeof model.tileCountsProperty.get>) => string,
+  notApplicable: TReadOnlyProperty<string>,
 ): TReadOnlyProperty<string> {
-  return new DerivedProperty([model.modeProperty, model.tileCountsProperty], (mode, counts) =>
-    isRhombusMode(mode) ? format(counts) : NOT_APPLICABLE,
+  return new DerivedProperty([model.modeProperty, model.tileCountsProperty, notApplicable], (mode, counts, na) =>
+    isRhombusMode(mode) ? format(counts) : na,
   );
 }
 
@@ -427,9 +445,10 @@ function placementOnly(
   model: AperiodicOrderModel,
   format: () => string,
   dependency: TReadOnlyProperty<unknown>,
+  notApplicable: TReadOnlyProperty<string>,
 ): TReadOnlyProperty<string> {
-  return new DerivedProperty([model.modeProperty, dependency], (mode) =>
-    mode === TilingMode.PLACEMENT ? format() : NOT_APPLICABLE,
+  return new DerivedProperty([model.modeProperty, dependency, notApplicable], (mode, _dep, na) =>
+    mode === TilingMode.PLACEMENT ? format() : na,
   );
 }
 
@@ -437,9 +456,10 @@ function placementOnly(
 function einsteinOnly(
   model: AperiodicOrderModel,
   format: (counts: ReturnType<typeof model.hatCountsProperty.get>) => string,
+  notApplicable: TReadOnlyProperty<string>,
 ): TReadOnlyProperty<string> {
-  return new DerivedProperty([model.modeProperty, model.hatCountsProperty], (mode, counts) =>
-    mode === TilingMode.EINSTEIN ? format(counts) : NOT_APPLICABLE,
+  return new DerivedProperty([model.modeProperty, model.hatCountsProperty, notApplicable], (mode, counts, na) =>
+    mode === TilingMode.EINSTEIN ? format(counts) : na,
   );
 }
 

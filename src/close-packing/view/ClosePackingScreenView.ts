@@ -10,7 +10,8 @@
  * classifies it as a stacking fault and renders it.
  */
 
-import { DerivedProperty, Property } from "scenerystack/axon";
+import { DerivedProperty, PatternStringProperty, Property } from "scenerystack/axon";
+import { toFixed } from "scenerystack/dot";
 import { type EmptySelfOptions, optionize } from "scenerystack/phet-core";
 import { HBox, Node, Rectangle, Text, VBox } from "scenerystack/scenery";
 import { PhetFont, ResetAllButton } from "scenerystack/scenery-phet";
@@ -107,7 +108,7 @@ export class ClosePackingScreenView extends ScreenView {
           model.customSequenceTextProperty.value = example;
           model.sequenceModeProperty.value = SequenceMode.CUSTOM;
         },
-        a11y.controls.sequenceInputStringProperty,
+        new Property(example),
       ),
     );
 
@@ -128,7 +129,7 @@ export class ClosePackingScreenView extends ScreenView {
     const idealButton = createTextButton(
       screenStrings.idealRatioStringProperty,
       () => model.snapToIdealRatio(),
-      screenStrings.idealRatioStringProperty,
+      a11y.controls.idealRatioStringProperty,
     );
     const labelsCheckbox = createCheckbox(
       screenStrings.showLabelsStringProperty,
@@ -163,7 +164,7 @@ export class ClosePackingScreenView extends ScreenView {
               font: new PhetFont(READOUT_FONT_SIZE),
               fill: CrystalLatticeColors.textColorProperty,
             }),
-            new Text(metal.cOverA.toFixed(3), {
+            new Text(toFixed(metal.cOverA, 3), {
               font: new PhetFont({ size: READOUT_FONT_SIZE, weight: "bold" }),
               fill:
                 Math.abs(metal.cOverA - IDEAL_C_OVER_A) < 0.02
@@ -180,7 +181,7 @@ export class ClosePackingScreenView extends ScreenView {
           createLabel(
             new DerivedProperty(
               [screenStrings.idealRatioStringProperty],
-              (label) => `${label}: ${IDEAL_C_OVER_A.toFixed(3)}`,
+              (label) => `${label}: ${toFixed(IDEAL_C_OVER_A, 3)}`,
             ),
           ),
           ...metalRows,
@@ -207,11 +208,13 @@ export class ClosePackingScreenView extends ScreenView {
         },
         {
           label: commonStrings.packingFractionStringProperty,
-          value: new DerivedProperty([model.packingFractionProperty], (fraction) => fraction.toFixed(4)),
+          value: new DerivedProperty([model.packingFractionProperty], (fraction) => toFixed(fraction, 4)),
         },
         {
           label: screenStrings.interlayerSpacingStringProperty,
-          value: new DerivedProperty([model.interlayerSpacingProperty], (spacing) => `${spacing.toFixed(4)} nm`),
+          value: new PatternStringProperty(commonStrings.valueNmStringProperty, {
+            value: new DerivedProperty([model.interlayerSpacingProperty], (spacing) => toFixed(spacing, 4)),
+          }),
         },
       ],
       {

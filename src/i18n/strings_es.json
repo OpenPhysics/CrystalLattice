@@ -15,7 +15,15 @@
     "coordinationNumber": "Número de coordinación",
     "atomsPerCell": "Átomos por celda",
     "packingFraction": "Fracción de empaquetamiento",
-    "none": "ninguno"
+    "none": "ninguno",
+    "infinity": "∞",
+    "notApplicable": "—",
+    "unitsNm": "{{value}} nm",
+    "unitsDegrees": "{{value}}°",
+    "valueNm": "{{value}} nm",
+    "valueNmSquared": "{{value}} nm²",
+    "valuePerNmSquared": "{{value}} /nm²",
+    "valueGPerCm3": "{{value}} g/cm³"
   },
   "lattices2D": {
     "vectorA1": "|a₁|",
@@ -181,14 +189,14 @@
         "snapToTouching": "Fijar el radio atómico al valor en que las esferas apenas se tocan",
         "clipPlane": "Recortar la parte frontal de la celda para revelar los átomos interiores",
         "showSharing": "Mostrar qué fracción de cada átomo pertenece a esta celda",
-        "cellRotation": "Celda unidad cúbica; arrastra para rotarla",
+        "cellRotation": "Celda unidad cúbica; arrastra o usa las flechas para rotarla",
         "elementSelector": "Elegir un metal cúbico real con el que comparar"
       }
     },
     "closePacking": {
       "screenSummary": {
         "playArea": "El área de juego muestra capas compactas de esferas apiladas unas sobre otras, dibujadas en tres dimensiones. Arrastra la pila para rotarla.",
-        "controlArea": "El área de control tiene un selector de secuencia de apilamiento para el empaquetamiento hexagonal y cúbico, un deslizador para el número de capas, un deslizador para la relación axial, un campo para escribir una secuencia propia y un botón de Reiniciar todo.",
+        "controlArea": "El área de control tiene un selector de secuencia de apilamiento para el empaquetamiento hexagonal y cúbico, botones que cargan secuencias de ejemplo, un deslizador para el número de capas, un deslizador para la relación axial y un botón de Reiniciar todo.",
         "interactionHint": "Alterna entre las secuencias A-B-A-B y A-B-C-A-B-C y fíjate en que la fracción de empaquetamiento no cambia, aunque las estructuras parezcan completamente distintas."
       },
       "currentDetails": "La pila es {{sequence}}, que corresponde a {{type}}. Tiene {{layers}} capas con una relación axial de {{ratio}}, lo que da un número de coordinación de {{coordination}} y una fracción de empaquetamiento de {{packing}}.",
@@ -196,15 +204,16 @@
         "stackingSelector": "Elegir la secuencia de apilamiento",
         "layerCountSlider": "Número de capas compactas",
         "cOverASlider": "Relación axial c entre a",
-        "sequenceInput": "Escribir una secuencia de apilamiento con las letras A, B y C",
-        "stackRotation": "Pila de capas compactas; arrastra para rotarla",
-        "showLabels": "Etiquetar cada capa con su posición A, B o C"
+        "sequenceInput": "Cargar una secuencia de apilamiento de ejemplo",
+        "stackRotation": "Pila de capas compactas; arrastra o usa las flechas para rotarla",
+        "showLabels": "Etiquetar cada capa con su posición A, B o C",
+        "idealRatio": "Fijar la relación axial al valor ideal de esferas rígidas"
       }
     },
     "millerIndices": {
       "screenSummary": {
         "playArea": "El área de juego muestra una celda unidad cúbica que contiene o bien un plano cristalográfico con tiradores de intersección arrastrables en los tres ejes, o bien un vector de dirección arrastrable desde el origen de la celda. Arrastra la celda para rotarla.",
-        "controlArea": "El área de control alterna entre el modo de plano y el de dirección, muestra la obtención paso a paso de los índices, ofrece ejemplos resueltos y tiene un campo para introducir índices directamente además de un botón de Reiniciar todo.",
+        "controlArea": "El área de control alterna entre el modo de plano y el de dirección, muestra la obtención paso a paso de los índices, ofrece ejemplos resueltos y tiene un botón de Reiniciar todo.",
         "interactionHint": "Arrastra un tirador de intersección y observa cómo el panel convierte las intersecciones en recíprocos y luego en índices enteros."
       },
       "currentDetails": "El plano actual es {{plane}} con una distancia interplanar de {{spacing}} nanómetros. Su familia equivalente tiene {{family}} miembros.",
@@ -214,11 +223,10 @@
         "interceptA": "Dónde corta el plano al eje a",
         "interceptB": "Dónde corta el plano al eje b",
         "interceptC": "Dónde corta el plano al eje c",
-        "indexInput": "Escribir un conjunto de tres índices",
         "showNormal": "Mostrar la dirección perpendicular al plano actual",
         "showFamily": "Mostrar todos los planos equivalentes a este bajo simetría cúbica",
         "presetButton": "Cargar un ejemplo resuelto",
-        "cellRotation": "Celda unidad cúbica; arrastra para rotarla",
+        "cellRotation": "Celda unidad cúbica; arrastra o usa las flechas para rotarla",
         "directionHandle": "Punta del vector de dirección; arrastra para cambiarlo"
       }
     },

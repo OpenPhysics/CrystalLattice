@@ -10,7 +10,8 @@
  * by dragging rather than picks from a menu.
  */
 
-import { DerivedProperty, Property } from "scenerystack/axon";
+import { DerivedProperty, PatternStringProperty, Property } from "scenerystack/axon";
+import { toFixed } from "scenerystack/dot";
 import { Shape } from "scenerystack/kite";
 import { type EmptySelfOptions, optionize } from "scenerystack/phet-core";
 import { Node, Rectangle, VBox } from "scenerystack/scenery";
@@ -35,6 +36,7 @@ import {
 } from "../../common/view/ControlFactory.js";
 import { DerivedQuantitiesPanel } from "../../common/view/DerivedQuantitiesPanel.js";
 import { StringManager } from "../../i18n/StringManager.js";
+import { getCrystalLatticePreferences } from "../../preferences/CrystalLatticePreferencesModel.js";
 import { GAMMA_RANGE, LATTICE_VECTOR_RANGE, type Lattices2DModel } from "../model/Lattices2DModel.js";
 import { Lattice2DNode } from "./Lattice2DNode.js";
 import { Lattices2DScreenSummaryContent } from "./Lattices2DScreenSummaryContent.js";
@@ -56,6 +58,7 @@ export class Lattices2DScreenView extends ScreenView {
     const screenStrings = strings.getLattices2DStrings();
     const commonStrings = strings.getCommonStrings();
     const a11y = strings.getLattices2DA11yStrings();
+    const advancedVisibleProperty = getCrystalLatticePreferences().showAdvancedReadoutsProperty;
 
     this.addChild(
       new Rectangle(0, 0, this.layoutBounds.width, this.layoutBounds.height, {
@@ -68,7 +71,12 @@ export class Lattices2DScreenView extends ScreenView {
     // wrapped in a clipping frame; without it, stray lattice points would draw
     // over the control column.
     const playAreaSize = this.layoutBounds.height - 2 * SCREEN_VIEW_MARGIN;
-    const latticeNode = new Lattice2DNode(model, playAreaSize);
+    const latticeNode = new Lattice2DNode(
+      model,
+      playAreaSize,
+      a11y.controls.handleA1StringProperty,
+      a11y.controls.handleA2StringProperty,
+    );
     const playAreaFrame = new Node({
       children: [latticeNode],
       clipArea: Shape.rectangle(0, 0, playAreaSize, playAreaSize),
@@ -85,21 +93,21 @@ export class Lattices2DScreenView extends ScreenView {
       model.a1Property,
       LATTICE_VECTOR_RANGE,
       a11y.controls.vectorA1SliderStringProperty,
-      { decimalPlaces: 3, units: "nm", delta: 0.005 },
+      { decimalPlaces: 3, unitsPattern: commonStrings.unitsNmStringProperty, delta: 0.005 },
     );
     const a2Slider = createSlider(
       screenStrings.vectorA2StringProperty,
       model.a2Property,
       LATTICE_VECTOR_RANGE,
       a11y.controls.vectorA2SliderStringProperty,
-      { decimalPlaces: 3, units: "nm", delta: 0.005 },
+      { decimalPlaces: 3, unitsPattern: commonStrings.unitsNmStringProperty, delta: 0.005 },
     );
     const gammaSlider = createSlider(
       screenStrings.gammaStringProperty,
       model.gammaDegreesProperty,
       GAMMA_RANGE,
       a11y.controls.gammaSliderStringProperty,
-      { decimalPlaces: 0, units: "°", delta: 1 },
+      { decimalPlaces: 0, unitsPattern: commonStrings.unitsDegreesStringProperty, delta: 1 },
     );
 
     const centeredCheckbox = createCheckbox(
@@ -176,7 +184,9 @@ export class Lattices2DScreenView extends ScreenView {
         },
         {
           label: screenStrings.cellAreaStringProperty,
-          value: new DerivedProperty([model.cellAreaProperty], (area) => `${area.toFixed(4)} nm²`),
+          value: new PatternStringProperty(commonStrings.valueNmSquaredStringProperty, {
+            value: new DerivedProperty([model.cellAreaProperty], (area) => toFixed(area, 4)),
+          }),
         },
         {
           label: commonStrings.atomsPerCellStringProperty,
@@ -188,15 +198,20 @@ export class Lattices2DScreenView extends ScreenView {
         },
         {
           label: screenStrings.nearestNeighbourStringProperty,
-          value: new DerivedProperty([model.coordinationProperty], (shell) => `${shell.distance.toFixed(3)} nm`),
+          value: new PatternStringProperty(commonStrings.valueNmStringProperty, {
+            value: new DerivedProperty([model.coordinationProperty], (shell) => toFixed(shell.distance, 3)),
+          }),
         },
         {
           label: screenStrings.arealDensityStringProperty,
-          value: new DerivedProperty([model.arealDensityProperty], (density) => `${density.toFixed(1)} /nm²`),
+          value: new PatternStringProperty(commonStrings.valuePerNmSquaredStringProperty, {
+            value: new DerivedProperty([model.arealDensityProperty], (density) => toFixed(density, 1)),
+          }),
+          visibleProperty: advancedVisibleProperty,
         },
         {
           label: commonStrings.packingFractionStringProperty,
-          value: new DerivedProperty([model.packingFractionProperty], (fraction) => fraction.toFixed(3)),
+          value: new DerivedProperty([model.packingFractionProperty], (fraction) => toFixed(fraction, 3)),
         },
       ],
       {
@@ -241,6 +256,7 @@ export class Lattices2DScreenView extends ScreenView {
       new Node({
         pdomOrder: [
           latticeNode,
+          ...latticeNode.getHandles(),
           a1Slider,
           a2Slider,
           gammaSlider,

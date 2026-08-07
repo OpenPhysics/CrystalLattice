@@ -7,6 +7,7 @@
  */
 
 import { DerivedProperty, PatternStringProperty } from "scenerystack/axon";
+import { toFixed } from "scenerystack/dot";
 import { ScreenSummaryContent } from "scenerystack/sim";
 import { StringManager } from "../../i18n/StringManager.js";
 import type { CubicSystemsModel } from "../model/CubicSystemsModel.js";
@@ -18,11 +19,11 @@ export class CubicSystemsScreenSummaryContent extends ScreenSummaryContent {
 
     const currentDetails = new PatternStringProperty(a11y.currentDetailsStringProperty, {
       structure: structureStringProperty(model.structureProperty),
-      edge: new DerivedProperty([model.edgeLengthProperty], (value) => value.toFixed(3)),
-      radius: new DerivedProperty([model.atomRadiusProperty], (value) => value.toFixed(3)),
+      edge: new DerivedProperty([model.edgeLengthProperty], (value) => toFixed(value, 3)),
+      radius: new DerivedProperty([model.atomRadiusProperty], (value) => toFixed(value, 3)),
       atoms: new DerivedProperty([model.atomsPerCellProperty], (value) => `${value}`),
       coordination: new DerivedProperty([model.coordinationNumberProperty], (value) => `${value}`),
-      apf: new DerivedProperty([model.packingFactorProperty], (value) => value.toFixed(3)),
+      apf: new DerivedProperty([model.packingFactorProperty], (value) => toFixed(value, 3)),
     });
 
     super({

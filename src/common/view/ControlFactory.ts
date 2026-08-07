@@ -69,14 +69,19 @@ export function createLabel(labelProperty: TReadOnlyProperty<string>, maxWidth =
  * @param property - the value being controlled
  * @param range - the slider's range
  * @param accessibleName - PDOM name; required, never a hard-coded literal
- * @param options - `decimalPlaces`, `units` and any NumberControlOptions
+ * @param options - `decimalPlaces`, localized `unitsPattern` (`"{{value}} nm"`), and any NumberControlOptions
  */
 export function createSlider(
   titleProperty: TReadOnlyProperty<string>,
   property: PhetioProperty<number>,
   range: Range,
   accessibleName: TReadOnlyProperty<string>,
-  options?: { decimalPlaces?: number; units?: string; delta?: number } & NumberControlOptions,
+  options?: {
+    decimalPlaces?: number;
+    /** Localized NumberDisplay pattern including `{{value}}`, e.g. `"{{value}} nm"`. */
+    unitsPattern?: TReadOnlyProperty<string>;
+    delta?: number;
+  } & NumberControlOptions,
 ): NumberControl {
   const decimalPlaces = options?.decimalPlaces ?? 2;
   const delta = options?.delta ?? 10 ** -decimalPlaces;
@@ -95,7 +100,7 @@ export function createSlider(
       textOptions: { font: panelFont(), fill: LIGHT_SURFACE_TEXT_FILL },
       backgroundFill: CrystalLatticeColors.controlSurfaceColorProperty,
       backgroundStroke: CrystalLatticeColors.panelBorderColorProperty,
-      ...(options?.units !== undefined && { valuePattern: `{{value}} ${options.units}` }),
+      ...(options?.unitsPattern !== undefined && { valuePattern: options.unitsPattern }),
     },
     sliderOptions: {
       thumbFill: CrystalLatticeColors.accentColorProperty,

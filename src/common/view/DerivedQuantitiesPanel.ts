@@ -30,6 +30,8 @@ export type QuantityRow = {
   readonly value: TReadOnlyProperty<string>;
   /** Optional colour override for the value, e.g. red when unphysical. */
   readonly valueFill?: TColor | TReadOnlyProperty<import("scenerystack/scenery").Color>;
+  /** When false the row is hidden (e.g. advanced readouts preference off). */
+  readonly visibleProperty?: TReadOnlyProperty<boolean>;
 };
 
 type SelfOptions = {
@@ -94,5 +96,6 @@ function createRow(row: QuantityRow, contentWidth: number): Node {
     children: [labelText, valueText],
     preferredWidth: contentWidth,
     justify: "spaceBetween",
+    ...(row.visibleProperty !== undefined && { visibleProperty: row.visibleProperty }),
   });
 }

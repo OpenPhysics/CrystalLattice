@@ -8,6 +8,7 @@
  */
 
 import { DerivedProperty, PatternStringProperty } from "scenerystack/axon";
+import { toFixed } from "scenerystack/dot";
 import { ScreenSummaryContent } from "scenerystack/sim";
 import { StringManager } from "../../i18n/StringManager.js";
 import type { ClosePackingModel } from "../model/ClosePackingModel.js";
@@ -21,9 +22,9 @@ export class ClosePackingScreenSummaryContent extends ScreenSummaryContent {
       sequence: sequenceTextProperty(model.sequenceProperty),
       type: stackingTypeStringProperty(model.stackingTypeProperty),
       layers: new DerivedProperty([model.sequenceProperty], (sequence) => `${sequence.length}`),
-      ratio: new DerivedProperty([model.cOverAProperty], (value) => value.toFixed(3)),
+      ratio: new DerivedProperty([model.cOverAProperty], (value) => toFixed(value, 3)),
       coordination: new DerivedProperty([model.coordinationNumberProperty], (value) => `${value}`),
-      packing: new DerivedProperty([model.packingFractionProperty], (value) => value.toFixed(4)),
+      packing: new DerivedProperty([model.packingFractionProperty], (value) => toFixed(value, 4)),
     });
 
     super({

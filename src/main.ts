@@ -28,14 +28,14 @@ import { CubicSystemsScreen } from "./cubic-systems/CubicSystemsScreen.js";
 import { StringManager } from "./i18n/StringManager.js";
 import { Lattices2DScreen } from "./lattices-2d/Lattices2DScreen.js";
 import { MillerIndicesScreen } from "./miller-indices/MillerIndicesScreen.js";
-import { CrystalLatticePreferencesModel } from "./preferences/CrystalLatticePreferencesModel.js";
+import { getCrystalLatticePreferences } from "./preferences/CrystalLatticePreferencesModel.js";
 import { CrystalLatticePreferencesNode } from "./preferences/CrystalLatticePreferencesNode.js";
 
 onReadyToLaunch(() => {
   const stringManager = StringManager.getInstance();
 
   // Simulation-specific preferences; initial values come from crystalLatticeQueryParameters.
-  const simPreferences = new CrystalLatticePreferencesModel(Tandem.ROOT.createTandem("preferences"));
+  const simPreferences = getCrystalLatticePreferences(Tandem.ROOT.createTandem("preferences"));
 
   const screens = [
     new Lattices2DScreen({
@@ -86,12 +86,12 @@ onReadyToLaunch(() => {
       },
     }),
 
-    // Optional: fill in credits shown in Help → About
     credits: {
-      leadDesign: "",
-      softwareDevelopment: "",
-      team: "",
-      qualityAssurance: "",
+      leadDesign: "OpenPhysics",
+      softwareDevelopment: "OpenPhysics",
+      team: "OpenPhysics contributors",
+      qualityAssurance: "OpenPhysics",
+      thanks: "Craig S. Kaplan (hatviz / spectre), SceneryStack",
     },
   });
 

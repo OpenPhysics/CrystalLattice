@@ -8,6 +8,7 @@
  */
 
 import { DerivedProperty, PatternStringProperty } from "scenerystack/axon";
+import { toFixed } from "scenerystack/dot";
 import { ScreenSummaryContent } from "scenerystack/sim";
 import { formatDirection, formatPlane } from "../../common/model/MillerIndices.js";
 import { StringManager } from "../../i18n/StringManager.js";
@@ -15,14 +16,16 @@ import { type MillerIndicesModel, MillerMode } from "../model/MillerIndicesModel
 
 export class MillerIndicesScreenSummaryContent extends ScreenSummaryContent {
   public constructor(model: MillerIndicesModel) {
-    const a11y = StringManager.getInstance().getMillerIndicesA11yStrings();
+    const strings = StringManager.getInstance();
+    const a11y = strings.getMillerIndicesA11yStrings();
+    const commonStrings = strings.getCommonStrings();
 
     const familyCount = new DerivedProperty([model.familyProperty], (family) => `${family.length}`);
 
     const planeDetails = new PatternStringProperty(a11y.currentDetailsStringProperty, {
       plane: new DerivedProperty([model.planeIndicesProperty], formatPlane),
-      spacing: new DerivedProperty([model.spacingProperty], (value) =>
-        Number.isFinite(value) ? value.toFixed(4) : "∞",
+      spacing: new DerivedProperty([model.spacingProperty, commonStrings.infinityStringProperty], (value, infinity) =>
+        Number.isFinite(value) ? toFixed(value, 4) : infinity,
       ),
       family: familyCount,
     });

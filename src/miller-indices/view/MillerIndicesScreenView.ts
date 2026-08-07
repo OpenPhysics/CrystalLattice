@@ -9,7 +9,8 @@
  * derivation panel showing the same four stages either way.
  */
 
-import { DerivedProperty, Property } from "scenerystack/axon";
+import { DerivedProperty, PatternStringProperty, Property } from "scenerystack/axon";
+import { toFixed } from "scenerystack/dot";
 import { type EmptySelfOptions, optionize } from "scenerystack/phet-core";
 import { HBox, Node, Rectangle, Text, VBox } from "scenerystack/scenery";
 import { PhetFont, ResetAllButton } from "scenerystack/scenery-phet";
@@ -39,6 +40,7 @@ import {
 } from "../../common/view/ControlFactory.js";
 import { DerivedQuantitiesPanel } from "../../common/view/DerivedQuantitiesPanel.js";
 import { StringManager } from "../../i18n/StringManager.js";
+import { getCrystalLatticePreferences } from "../../preferences/CrystalLatticePreferencesModel.js";
 import { DIRECTION_PRESETS, type MillerIndicesModel, MillerMode, PLANE_PRESETS } from "../model/MillerIndicesModel.js";
 import { DerivationPanel } from "./DerivationPanel.js";
 import { MillerCellNode } from "./MillerCellNode.js";
@@ -84,12 +86,12 @@ export class MillerIndicesScreenView extends ScreenView {
       {
         value: MillerMode.PLANE,
         label: screenStrings.planeModeStringProperty,
-        accessibleName: a11y.controls.modeSelectorStringProperty,
+        accessibleName: screenStrings.planeModeStringProperty,
       },
       {
         value: MillerMode.DIRECTION,
         label: screenStrings.directionModeStringProperty,
-        accessibleName: a11y.controls.modeSelectorStringProperty,
+        accessibleName: screenStrings.directionModeStringProperty,
       },
     ]);
 
@@ -102,7 +104,7 @@ export class MillerIndicesScreenView extends ScreenView {
           model.modeProperty.value = MillerMode.PLANE;
           model.applyIndices(indices);
         },
-        a11y.controls.presetButtonStringProperty,
+        new Property(formatPlane(indices)),
       ),
     );
     const directionButtons = DIRECTION_PRESETS.map((indices) =>
@@ -112,7 +114,7 @@ export class MillerIndicesScreenView extends ScreenView {
           model.modeProperty.value = MillerMode.DIRECTION;
           model.applyIndices(indices);
         },
-        a11y.controls.presetButtonStringProperty,
+        new Property(formatDirection(indices)),
       ),
     );
 
@@ -162,6 +164,12 @@ export class MillerIndicesScreenView extends ScreenView {
       valueFill: CrystalLatticeColors.successColorProperty,
     };
 
+    const spacingFormattedProperty = new PatternStringProperty(commonStrings.valueNmStringProperty, {
+      value: new DerivedProperty([model.spacingProperty], (spacing) =>
+        Number.isFinite(spacing) ? toFixed(spacing, 4) : "0",
+      ),
+    });
+
     const quantitiesPanel = new DerivedQuantitiesPanel(
       [
         indexRow,
@@ -179,13 +187,17 @@ export class MillerIndicesScreenView extends ScreenView {
         },
         {
           label: screenStrings.interplanarSpacingStringProperty,
-          value: new DerivedProperty([model.spacingProperty], (spacing) =>
-            Number.isFinite(spacing) ? `${spacing.toFixed(4)} nm` : "∞",
+          value: new DerivedProperty(
+            [model.spacingProperty, spacingFormattedProperty, commonStrings.infinityStringProperty],
+            (spacing, formatted, infinity) => (Number.isFinite(spacing) ? formatted : infinity),
           ),
         },
         {
           label: screenStrings.planarDensityStringProperty,
-          value: new DerivedProperty([model.planarDensityProperty], (density) => `${density.toFixed(1)} /nm²`),
+          value: new PatternStringProperty(commonStrings.valuePerNmSquaredStringProperty, {
+            value: new DerivedProperty([model.planarDensityProperty], (density) => toFixed(density, 1)),
+          }),
+          visibleProperty: getCrystalLatticePreferences().showAdvancedReadoutsProperty,
         },
       ],
       {

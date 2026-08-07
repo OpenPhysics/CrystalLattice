@@ -30,25 +30,35 @@ export class DerivationPanel extends CrystalLatticePanel {
     providedOptions?: CrystalLatticePanelOptions,
   ) {
     const strings = StringManager.getInstance().getMillerIndicesStrings();
+    const commonStrings = StringManager.getInstance().getCommonStrings();
 
     const grid = new GridBox({
       xSpacing: 10,
       ySpacing: 6,
       xAlign: "left",
       children: [
-        ...stageRow(0, strings.stepInterceptsStringProperty, derivationProperty, (derivation, axis) => {
-          const intercept = derivation.intercepts[axis];
-          return intercept === null ? "∞" : intercept.toString();
-        }),
-        ...stageRow(1, strings.stepReciprocalsStringProperty, derivationProperty, (derivation, axis) =>
-          // biome-ignore lint/style/noNonNullAssertion: axis is always 0, 1 or 2
-          derivation.reciprocals[axis]!.toString(),
+        ...stageRow(
+          0,
+          strings.stepInterceptsStringProperty,
+          (axis) =>
+            new DerivedProperty([derivationProperty, commonStrings.infinityStringProperty], (derivation, infinity) => {
+              const intercept = derivation.intercepts[axis];
+              return intercept === null ? infinity : intercept.toString();
+            }),
+        ),
+        ...stageRow(
+          1,
+          strings.stepReciprocalsStringProperty,
+          (axis) =>
+            new DerivedProperty([derivationProperty], (derivation) =>
+              // biome-ignore lint/style/noNonNullAssertion: axis is always 0, 1 or 2
+              derivation.reciprocals[axis]!.toString(),
+            ),
         ),
         ...stageRow(
           2,
           strings.stepClearedStringProperty,
-          derivationProperty,
-          (derivation, axis) => `${derivation.cleared[axis]}`,
+          (axis) => new DerivedProperty([derivationProperty], (derivation) => `${derivation.cleared[axis]}`),
         ),
       ],
     });
@@ -88,8 +98,7 @@ export class DerivationPanel extends CrystalLatticePanel {
 function stageRow(
   row: number,
   labelProperty: TReadOnlyProperty<string>,
-  derivationProperty: TReadOnlyProperty<PlaneDerivation>,
-  valueFor: (derivation: PlaneDerivation, axis: 0 | 1 | 2) => string,
+  valuePropertyFor: (axis: 0 | 1 | 2) => TReadOnlyProperty<string>,
 ): Text[] {
   const label = new Text(labelProperty, {
     font: new PhetFont(READOUT_FONT_SIZE),
@@ -100,7 +109,7 @@ function stageRow(
 
   const values = ([0, 1, 2] as const).map(
     (axis) =>
-      new Text(new DerivedProperty([derivationProperty], (derivation) => valueFor(derivation, axis)), {
+      new Text(valuePropertyFor(axis), {
         font: new PhetFont({ size: READOUT_FONT_SIZE, weight: "bold" }),
         fill: CrystalLatticeColors.accentColorProperty,
         layoutOptions: { column: axis + 1, row },

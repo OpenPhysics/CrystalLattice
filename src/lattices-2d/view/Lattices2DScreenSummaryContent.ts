@@ -9,6 +9,7 @@
  */
 
 import { DerivedProperty, PatternStringProperty } from "scenerystack/axon";
+import { toFixed } from "scenerystack/dot";
 import { ScreenSummaryContent } from "scenerystack/sim";
 import { StringManager } from "../../i18n/StringManager.js";
 import type { Lattices2DModel } from "../model/Lattices2DModel.js";
@@ -20,9 +21,9 @@ export class Lattices2DScreenSummaryContent extends ScreenSummaryContent {
 
     const currentDetails = new PatternStringProperty(a11y.currentDetailsStringProperty, {
       type: latticeTypeStringProperty(model.latticeTypeProperty),
-      a1: new DerivedProperty([model.a1Property], (value) => value.toFixed(3)),
-      a2: new DerivedProperty([model.a2Property], (value) => value.toFixed(3)),
-      gamma: new DerivedProperty([model.gammaDegreesProperty], (value) => value.toFixed(0)),
+      a1: new DerivedProperty([model.a1Property], (value) => toFixed(value, 3)),
+      a2: new DerivedProperty([model.a2Property], (value) => toFixed(value, 3)),
+      gamma: new DerivedProperty([model.gammaDegreesProperty], (value) => toFixed(value, 0)),
       coordination: new DerivedProperty([model.coordinationProperty], (shell) => `${shell.count}`),
     });
 

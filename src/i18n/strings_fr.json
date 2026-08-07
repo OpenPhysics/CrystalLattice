@@ -15,7 +15,15 @@
     "coordinationNumber": "Nombre de coordination",
     "atomsPerCell": "Atomes par maille",
     "packingFraction": "Compacité",
-    "none": "aucun"
+    "none": "aucun",
+    "infinity": "∞",
+    "notApplicable": "—",
+    "unitsNm": "{{value}} nm",
+    "unitsDegrees": "{{value}}°",
+    "valueNm": "{{value}} nm",
+    "valueNmSquared": "{{value}} nm²",
+    "valuePerNmSquared": "{{value}} /nm²",
+    "valueGPerCm3": "{{value}} g/cm³"
   },
   "lattices2D": {
     "vectorA1": "|a₁|",
@@ -181,14 +189,14 @@
         "snapToTouching": "Fixer le rayon atomique à la valeur où les sphères se touchent tout juste",
         "clipPlane": "Couper l'avant de la maille pour révéler les atomes intérieurs",
         "showSharing": "Afficher quelle fraction de chaque atome appartient à cette maille",
-        "cellRotation": "Maille élémentaire cubique ; faites glisser pour la faire tourner",
+        "cellRotation": "Maille élémentaire cubique ; faites glisser ou utilisez les flèches pour la faire tourner",
         "elementSelector": "Choisir un métal cubique réel pour la comparaison"
       }
     },
     "closePacking": {
       "screenSummary": {
         "playArea": "L'aire de jeu montre des couches compactes de sphères empilées les unes sur les autres, dessinées en trois dimensions. Faites glisser l'empilement pour le faire tourner.",
-        "controlArea": "L'aire de commande comporte un sélecteur de séquence d'empilement pour l'empilement compact hexagonal et cubique, un curseur pour le nombre de couches, un curseur pour le rapport axial, un champ pour saisir une séquence personnalisée et un bouton Tout réinitialiser.",
+        "controlArea": "L'aire de commande comporte un sélecteur de séquence d'empilement pour l'empilement compact hexagonal et cubique, des boutons qui chargent des séquences d'exemple, un curseur pour le nombre de couches, un curseur pour le rapport axial et un bouton Tout réinitialiser.",
         "interactionHint": "Passez de la séquence A-B-A-B à A-B-C-A-B-C et remarquez que la compacité ne change pas, même si les structures paraissent totalement différentes."
       },
       "currentDetails": "L'empilement est {{sequence}}, ce qui correspond à {{type}}. Il compte {{layers}} couches pour un rapport axial de {{ratio}}, ce qui donne un nombre de coordination de {{coordination}} et une compacité de {{packing}}.",
@@ -196,15 +204,16 @@
         "stackingSelector": "Choisir la séquence d'empilement",
         "layerCountSlider": "Nombre de couches compactes",
         "cOverASlider": "Rapport axial c sur a",
-        "sequenceInput": "Saisir une séquence d'empilement avec les lettres A, B et C",
-        "stackRotation": "Empilement de couches compactes ; faites glisser pour le faire tourner",
-        "showLabels": "Étiqueter chaque couche par sa position A, B ou C"
+        "sequenceInput": "Charger une séquence d'empilement d'exemple",
+        "stackRotation": "Empilement de couches compactes ; faites glisser ou utilisez les flèches pour le faire tourner",
+        "showLabels": "Étiqueter chaque couche par sa position A, B ou C",
+        "idealRatio": "Fixer le rapport axial à la valeur idéale des sphères dures"
       }
     },
     "millerIndices": {
       "screenSummary": {
         "playArea": "L'aire de jeu montre une maille élémentaire cubique contenant soit un plan cristallographique avec des poignées d'intersection déplaçables sur les trois axes, soit un vecteur direction déplaçable depuis l'origine de la maille. Faites glisser la maille pour la faire tourner.",
-        "controlArea": "L'aire de commande bascule entre le mode plan et le mode direction, montre l'obtention pas à pas des indices, propose des exemples résolus, et comporte un champ de saisie directe des indices ainsi qu'un bouton Tout réinitialiser.",
+        "controlArea": "L'aire de commande bascule entre le mode plan et le mode direction, montre l'obtention pas à pas des indices, propose des exemples résolus et comporte un bouton Tout réinitialiser.",
         "interactionHint": "Faites glisser une poignée d'intersection et regardez le panneau transformer les intersections en inverses puis en indices entiers."
       },
       "currentDetails": "Le plan actuel est {{plane}} avec une distance interréticulaire de {{spacing}} nanomètres. Sa famille équivalente compte {{family}} membres.",
@@ -214,11 +223,10 @@
         "interceptA": "Où le plan coupe l'axe a",
         "interceptB": "Où le plan coupe l'axe b",
         "interceptC": "Où le plan coupe l'axe c",
-        "indexInput": "Saisir un jeu de trois indices",
         "showNormal": "Afficher la direction perpendiculaire au plan actuel",
         "showFamily": "Afficher tous les plans équivalents à celui-ci par symétrie cubique",
         "presetButton": "Charger un exemple résolu",
-        "cellRotation": "Maille élémentaire cubique ; faites glisser pour la faire tourner",
+        "cellRotation": "Maille élémentaire cubique ; faites glisser ou utilisez les flèches pour la faire tourner",
         "directionHandle": "Extrémité du vecteur direction ; faites glisser pour le modifier"
       }
     },
