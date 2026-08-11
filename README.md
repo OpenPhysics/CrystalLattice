@@ -1,5 +1,7 @@
 # Crystal Lattice
 
+[![CI](https://github.com/OpenPhysics/CrystalLattice/actions/workflows/ci.yml/badge.svg)](https://github.com/OpenPhysics/CrystalLattice/actions/workflows/ci.yml)
+
 An interactive simulation of crystal structure, built with
 [SceneryStack](https://scenerystack.org/), Vite 8, TypeScript 7, and Biome 2.
 
