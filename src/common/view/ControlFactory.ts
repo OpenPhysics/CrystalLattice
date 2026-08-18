@@ -121,7 +121,7 @@ export function createCheckbox(
   return new Checkbox(property, createLabel(labelProperty, CONTROL_PANEL_WIDTH - 30), {
     accessibleName,
     checkboxColor: CrystalLatticeColors.textColorProperty,
-    checkboxColorBackground: CrystalLatticeColors.controlSurfaceColorProperty,
+    checkboxColorBackground: CrystalLatticeColors.panelBackgroundColorProperty,
     spacing: 8,
     ...options,
   });
