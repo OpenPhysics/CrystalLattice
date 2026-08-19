@@ -21,6 +21,7 @@ import { Multilink, type TReadOnlyProperty, type UnknownMultilink } from "scener
 import { Image, Node, type NodeOptions, Rectangle } from "scenerystack/scenery";
 import CrystalLatticeColors from "../../CrystalLatticeColors.js";
 import type { DiffractionResult } from "../../common/model/DiffractionPattern.js";
+import { replaceChildren } from "../../common/view/replaceChildren.js";
 
 export type DiffractionNodeOptions = NodeOptions;
 
@@ -64,7 +65,7 @@ export class DiffractionNode extends Node {
   private rebuild(): void {
     const result = this.resultProperty.value;
     if (result.resolution <= 1) {
-      this.imageLayer.children = [];
+      replaceChildren(this.imageLayer, []);
       return;
     }
 
@@ -73,7 +74,7 @@ export class DiffractionNode extends Node {
     canvas.height = result.resolution;
     const context = canvas.getContext("2d");
     if (context === null) {
-      this.imageLayer.children = [];
+      replaceChildren(this.imageLayer, []);
       return;
     }
 
@@ -92,12 +93,12 @@ export class DiffractionNode extends Node {
     // off: a Bragg peak occupies one grid cell, and interpolating it would blur
     // a sharp peak into something that looks diffuse — the exact distinction
     // the screen is asking the student to make.
-    this.imageLayer.children = [
+    replaceChildren(this.imageLayer, [
       new Image(canvas, {
         scale: this.size / result.resolution,
         imageOpacity: 1,
       }),
-    ];
+    ]);
   }
 
   public override dispose(): void {

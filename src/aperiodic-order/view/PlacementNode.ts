@@ -36,6 +36,7 @@ import {
   RhombusType,
   rhombusAt,
 } from "../../common/model/PenroseTiling.js";
+import { replaceChildren } from "../../common/view/replaceChildren.js";
 import { StringManager } from "../../i18n/StringManager.js";
 import type { AperiodicOrderModel } from "../model/AperiodicOrderModel.js";
 
@@ -85,33 +86,39 @@ export class PlacementNode extends Node {
 
   /** Redraws the placed tiles and the slots on offer. */
   private rebuild(): void {
-    this.tileLayer.children = this.model.placedRhombiProperty.value.map((rhombus) =>
-      this.createTilePath(rhombus, false),
+    replaceChildren(
+      this.tileLayer,
+      this.model.placedRhombiProperty.value.map((rhombus) => this.createTilePath(rhombus, false)),
     );
 
     const a11y = StringManager.getInstance().getAperiodicOrderA11yStrings();
-    this.slotLayer.children = this.model.candidatesProperty.value.map((candidate) => {
-      const slot = new Path(this.rhombusShape(candidate.rhombus), {
-        // No fill: a slot is a place, not a tile, and a filled one reads as
-        // already played.
-        fill: null,
-        stroke: candidate.legal ? CrystalLatticeColors.successColorProperty : CrystalLatticeColors.warningColorProperty,
-        lineWidth: SLOT_LINE_WIDTH,
-        lineDash: candidate.legal ? [] : [4, 3],
-        cursor: "pointer",
-        tagName: "button",
-        focusable: true,
-        accessibleName: candidate.legal
-          ? a11y.controls.legalSlotStringProperty
-          : a11y.controls.illegalSlotStringProperty,
-      });
+    replaceChildren(
+      this.slotLayer,
+      this.model.candidatesProperty.value.map((candidate) => {
+        const slot = new Path(this.rhombusShape(candidate.rhombus), {
+          // No fill: a slot is a place, not a tile, and a filled one reads as
+          // already played.
+          fill: null,
+          stroke: candidate.legal
+            ? CrystalLatticeColors.successColorProperty
+            : CrystalLatticeColors.warningColorProperty,
+          lineWidth: SLOT_LINE_WIDTH,
+          lineDash: candidate.legal ? [] : [4, 3],
+          cursor: "pointer",
+          tagName: "button",
+          focusable: true,
+          accessibleName: candidate.legal
+            ? a11y.controls.legalSlotStringProperty
+            : a11y.controls.illegalSlotStringProperty,
+        });
 
-      // FireListener rather than a press handler: it fires on a click and on
-      // Enter or Space from the PDOM, so the keyboard path is the same code.
-      slot.addInputListener(new FireListener({ fire: () => this.model.placeTile(candidate) }));
+        // FireListener rather than a press handler: it fires on a click and on
+        // Enter or Space from the PDOM, so the keyboard path is the same code.
+        slot.addInputListener(new FireListener({ fire: () => this.model.placeTile(candidate) }));
 
-      return slot;
-    });
+        return slot;
+      }),
+    );
   }
 
   /**

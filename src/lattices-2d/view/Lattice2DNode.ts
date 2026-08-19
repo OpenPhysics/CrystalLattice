@@ -36,6 +36,7 @@ import {
   wignerSeitzCell,
 } from "../../common/model/Lattice2D.js";
 import { AtomNode } from "../../common/view/AtomNode.js";
+import { replaceChildren } from "../../common/view/replaceChildren.js";
 import { GAMMA_RANGE, LATTICE_VECTOR_RANGE, type Lattices2DModel } from "../model/Lattices2DModel.js";
 
 /** Radius of an ordinary lattice point, in view pixels. */
@@ -196,7 +197,7 @@ export class Lattice2DNode extends Node {
       );
     }
 
-    this.overlayLayer.children = children;
+    replaceChildren(this.overlayLayer, children);
   }
 
   /** The lattice points, plus the centring basis atoms when the motif has two. */
@@ -224,7 +225,7 @@ export class Lattice2DNode extends Node {
       }
     }
 
-    this.pointLayer.children = children;
+    replaceChildren(this.pointLayer, children);
   }
 
   /** The two primitive-vector arrows; handle positions update in place. */
@@ -233,7 +234,7 @@ export class Lattice2DNode extends Node {
     const tip1 = this.modelViewTransform.modelToViewPosition(primitiveVector1(parameters));
     const tip2 = this.modelViewTransform.modelToViewPosition(primitiveVector2(parameters));
 
-    this.vectorLayer.children = [
+    replaceChildren(this.vectorLayer, [
       new ArrowNode(origin.x, origin.y, tip1.x, tip1.y, {
         fill: CrystalLatticeColors.vectorAColorProperty,
         stroke: CrystalLatticeColors.vectorAColorProperty,
@@ -248,7 +249,7 @@ export class Lattice2DNode extends Node {
         headWidth: 12,
         tailWidth: 3,
       }),
-    ];
+    ]);
 
     this.handleA1.center = tip1;
     this.handleA2.center = tip2;

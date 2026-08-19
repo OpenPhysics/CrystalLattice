@@ -33,6 +33,7 @@ import { cellCorners, cellEdgeIndices, SiteKind } from "../../common/model/Cubic
 import type { Projection3D } from "../../common/model/Projection3D.js";
 import { AtomNode, createSharingWedge } from "../../common/view/AtomNode.js";
 import { Projected3DNode, type Projected3DNodeOptions } from "../../common/view/Projected3DNode.js";
+import { replaceChildren } from "../../common/view/replaceChildren.js";
 import type { CubicSystemsModel } from "../model/CubicSystemsModel.js";
 
 export type CubicCellNodeOptions = Projected3DNodeOptions;
@@ -96,11 +97,11 @@ export class CubicCellNode extends Projected3DNode {
       (midDepth < centerDepth ? behindEdges : frontEdges).push(line);
     }
 
-    this.contentNode.children = [
+    replaceChildren(this.contentNode, [
       new Node({ children: behindEdges, opacity: 0.45 }),
       ...this.createAtomNodes(camera, offset),
       new Node({ children: frontEdges }),
-    ];
+    ]);
   }
 
   /** One wireframe edge of the cube. */

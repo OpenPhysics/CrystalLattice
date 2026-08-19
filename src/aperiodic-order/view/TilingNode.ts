@@ -18,6 +18,7 @@ import { Circle, Node, type NodeOptions, Path } from "scenerystack/scenery";
 import CrystalLatticeColors from "../../CrystalLatticeColors.js";
 import { MetatileType, type PlacedHat } from "../../common/model/EinsteinTiling.js";
 import { type PenroseRhombus, RhombusType } from "../../common/model/PenroseTiling.js";
+import { replaceChildren } from "../../common/view/replaceChildren.js";
 import { type AperiodicOrderModel, TilingMode } from "../model/AperiodicOrderModel.js";
 
 export type TilingNodeOptions = NodeOptions;
@@ -55,7 +56,7 @@ export class TilingNode extends Node {
       mode === TilingMode.PENROSE ? this.rhombusPolygons() : mode === TilingMode.EINSTEIN ? this.hatPolygons() : [];
 
     if (mode === TilingMode.PERIODIC) {
-      this.children = [this.createLatticeDots()];
+      replaceChildren(this, [this.createLatticeDots()]);
       return;
     }
 
@@ -80,7 +81,7 @@ export class TilingNode extends Node {
       children.push(...this.createOrientationOverlay(polygons, toView));
     }
 
-    this.children = children;
+    replaceChildren(this, children);
   }
 
   /** Penrose rhombi, coloured thick versus thin. */

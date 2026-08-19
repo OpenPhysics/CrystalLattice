@@ -20,6 +20,7 @@ import { CLOSE_PACKING_LAYER_RANGE, HEADING_FONT_SIZE, MAX_LAYER_COUNT } from ".
 import { LayerPosition } from "../../common/model/ClosePacking.js";
 import { AtomNode } from "../../common/view/AtomNode.js";
 import { Projected3DNode, type Projected3DNodeOptions } from "../../common/view/Projected3DNode.js";
+import { replaceChildren } from "../../common/view/replaceChildren.js";
 import { type ClosePackingModel, IN_PLANE_CONSTANT_NM } from "../model/ClosePackingModel.js";
 
 /** Camera pitch for the stack view, steeper than the sim-wide default. */
@@ -90,7 +91,7 @@ export class LayerStackNode extends Projected3DNode {
       children.push(...this.createLayerLabels(offset.z));
     }
 
-    this.contentNode.children = children;
+    replaceChildren(this.contentNode, children);
   }
 
   /**

@@ -47,6 +47,7 @@ import type { IndexTriple } from "../../common/model/MillerIndices.js";
 import { planePolygonInCell } from "../../common/model/MillerIndices.js";
 import type { Projection3D } from "../../common/model/Projection3D.js";
 import { Projected3DNode, type Projected3DNodeOptions } from "../../common/view/Projected3DNode.js";
+import { replaceChildren } from "../../common/view/replaceChildren.js";
 import { StringManager } from "../../i18n/StringManager.js";
 import { type MillerIndicesModel, MillerMode } from "../model/MillerIndicesModel.js";
 
@@ -174,7 +175,7 @@ export class MillerCellNode extends Projected3DNode {
       children.push(this.createDirectionArrow(camera, offset));
     }
 
-    this.contentNode.children = children;
+    replaceChildren(this.contentNode, children);
     this.positionHandles(camera, offset, isPlaneMode);
   }
 

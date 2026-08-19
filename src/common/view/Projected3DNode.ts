@@ -11,6 +11,9 @@
  * cheapest correct thing is to rebuild the children each time rather than to
  * track which node needs to move where. Cell contents here top out at a few
  * hundred spheres, which is comfortably inside the budget for that.
+ *
+ * Subclasses must dispose the previous content when they rebuild — assigning
+ * `contentNode.children` only detaches the old nodes. Use `replaceChildren`.
  */
 
 import { Property, type TReadOnlyProperty } from "scenerystack/axon";
