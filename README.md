@@ -1,6 +1,6 @@
 # Crystal Lattice
 
-[![CI](https://github.com/OpenPhysics/CrystalLattice/actions/workflows/ci.yml/badge.svg)](https://github.com/OpenPhysics/CrystalLattice/actions/workflows/ci.yml)
+[![CI](../../actions/workflows/ci.yml/badge.svg)](../../actions/workflows/ci.yml)
 
 An interactive simulation of crystal structure, built with
 [SceneryStack](https://scenerystack.org/), Vite 8, TypeScript 7, and Biome 2.
@@ -32,7 +32,7 @@ The physics is documented for educators in [`doc/model.md`](doc/model.md) and fo
 - Default and projector color profiles
 - Progressive Web App (installable, offline-capable)
 - Git hooks for Biome pre-commit checks
-- Shared GitHub Actions CI via `OpenPhysics/Baton`
+- Shared GitHub Actions CI via `OpenLyceum/Baton`
 
 ## Quick Start
 
@@ -75,12 +75,12 @@ The sim starts at `version: "0.0.0"` in `package.json`. Bump only when cutting a
 
 ## License
 
-GNU Affero General Public License v3.0 — see [OpenPhysics org license](https://github.com/OpenPhysics/.github/blob/main/LICENSE).
+GNU Affero General Public License v3.0 — see [OpenLyceum org license](https://github.com/OpenLyceum/.github/blob/main/LICENSE).
 
 `src/common/model/EinsteinTiling.ts` is a port of Craig S. Kaplan's `hatviz`, used under its
 BSD 3-Clause licence; the full notice and the scientific sources are in [CREDITS.md](CREDITS.md).
 
 ## Contributing
 
-See [OpenPhysics contributing guidelines](https://github.com/OpenPhysics/.github/blob/main/CONTRIBUTING.md).
+See [OpenLyceum contributing guidelines](https://github.com/OpenLyceum/.github/blob/main/CONTRIBUTING.md).
 Report bugs via GitHub Issues; use org issue templates.

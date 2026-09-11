@@ -87,10 +87,10 @@ onReadyToLaunch(() => {
     }),
 
     credits: {
-      leadDesign: "OpenPhysics",
-      softwareDevelopment: "OpenPhysics",
-      team: "OpenPhysics contributors",
-      qualityAssurance: "OpenPhysics",
+      leadDesign: "OpenLyceum",
+      softwareDevelopment: "OpenLyceum",
+      team: "OpenLyceum contributors",
+      qualityAssurance: "OpenLyceum",
       thanks: "Craig S. Kaplan (hatviz / spectre), SceneryStack",
     },
   });

@@ -1,11 +1,11 @@
 # CLAUDE.md — Crystal Lattice
 
-Sim-specific context for AI assistants. General SceneryStack guidance: [OpenPhysics/.github/CLAUDE.md](https://github.com/OpenPhysics/.github/blob/main/CLAUDE.md).
+Sim-specific context for AI assistants. General SceneryStack guidance: [OpenLyceum/.github/CLAUDE.md](https://github.com/OpenLyceum/.github/blob/main/CLAUDE.md).
 
 ## Project
 
 A five-screen simulation of crystal structure, forked from
-[SceneryStackTemplate](https://github.com/OpenPhysics/SceneryStackTemplate). The screens form an
+[SceneryStackTemplate](https://github.com/OpenLyceum/SceneryStackTemplate). The screens form an
 argument, not a topic list: Screens 1–4 build up the repeating-unit-cell picture, and Screen 5
 withdraws it. Educator-facing physics is in [`doc/model.md`](doc/model.md); architecture is in
 [`doc/implementation-notes.md`](doc/implementation-notes.md).
@@ -122,7 +122,7 @@ argument, so a missing one is a compile error rather than a silent gap. Draggabl
 need `tagName: "div"` and `focusable: true`.
 
 A11y strings live under the `a11y` key per screen in each locale JSON, reached through
-`StringManager.get{Screen}A11yStrings()`. Full convention: [Baton/ACCESSIBILITY.md](https://github.com/OpenPhysics/Baton/blob/main/ACCESSIBILITY.md).
+`StringManager.get{Screen}A11yStrings()`. Full convention: [Baton/ACCESSIBILITY.md](https://github.com/OpenLyceum/Baton/blob/main/ACCESSIBILITY.md).
 
 ## Compliance carve-outs
 
